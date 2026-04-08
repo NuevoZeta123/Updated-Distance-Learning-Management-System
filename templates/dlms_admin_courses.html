@@ -1,0 +1,44 @@
+{% extends "dlms_base_template.html" %}
+
+{% block title %}All Courses - Distance Learn{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="card">
+        <h1 class="card-title">All Courses</h1>
+
+        <div class="table">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Course Title</th>
+                        <th>Description</th>
+                        <th>Lecturer</th>
+                        <th>Lectures</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for course in courses %}
+                    <tr>
+                        <td>{{ course[0] }}</td>
+                        <td>{{ course[1] }}</td>
+                        <td>{{ course[2][:100] }}{% if course[2]|length > 100 %}...{% endif %}</td>
+                        <td>{{ course[3] }}</td>
+                        <td>{{ course[4] }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" style="text-align: center; color: #7f8c8d;">No courses found</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div style="margin-top: 1rem;">
+            <a href="{{ url_for('admin_dashboard') }}" class="btn">← Back to Dashboard</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

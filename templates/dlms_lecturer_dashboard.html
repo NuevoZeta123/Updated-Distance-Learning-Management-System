@@ -1,0 +1,38 @@
+{% extends "dlms_base_template.html" %}
+
+{% block title %}Lecturer Dashboard - Distance Learn{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="card">
+        <h1 class="card-title">Lecturer Dashboard</h1>
+        <p>Welcome, {{ session.full_name }}! Manage your courses and lectures from here.</p>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-number">{{ course_count }}</div>
+            <div class="stat-label">My Courses</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ lecture_count }}</div>
+            <div class="stat-label">Uploaded Lectures</div>
+        </div>
+    </div>
+
+    <div class="dashboard-links">
+        <a href="{{ url_for('lecturer_courses') }}" class="dashboard-link">
+            <h3>📚 My Courses</h3>
+            <p>View and manage your courses</p>
+        </a>
+        <a href="{{ url_for('lecturer_create_course') }}" class="dashboard-link">
+            <h3>➕ Create Course</h3>
+            <p>Add a new course to the system</p>
+        </a>
+        <a href="{{ url_for('lecturer_upload_lecture') }}" class="dashboard-link">
+            <h3>🎥 Upload Lecture</h3>
+            <p>Upload video lectures to your courses</p>
+        </a>
+    </div>
+</div>
+{% endblock %}

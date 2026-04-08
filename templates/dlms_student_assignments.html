@@ -1,0 +1,67 @@
+{% extends "dlms_base_template.html" %}
+
+{% block title %}Assignments - Distance Learn{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div>
+        <h2>Assignments</h2>
+        <p style="color: var(--muted); margin-bottom: 2rem;">{{ course[0] }}</p>
+    </div>
+
+    {% if assignments %}
+        <div style="display: grid; gap: 1rem;">
+            {% for assignment in assignments %}
+            <div style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: var(--surface-shadow);">
+                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
+                    <div style="flex: 1;">
+                        <h3 style="color: var(--brand); margin-bottom: 0.3rem;">{{ assignment[1] }}</h3>
+                        <p style="color: var(--muted); font-size: 0.9rem;">
+                            Due: {{ assignment[3].strftime('%b %d, %Y at %I:%M %p') if assignment[3] else 'No deadline' }}
+                        </p>
+                    </div>
+                    <span style="background: var(--brand-2); color: white; padding: 0.3rem 0.8rem; border-radius: 4px; font-size: 0.85rem;">{{ assignment[4] }} pts</span>
+                </div>
+                <p style="color: #555; margin-bottom: 1rem; line-height: 1.5;">{{ assignment[2][:150] }}...</p>
+                
+                <div style="display: flex; gap: 1rem; align-items: center;">
+                    {% if assignment[8] == 'graded' %}
+                        <span style="background: var(--brand-2); color: white; padding: 0.4rem 0.8rem; border-radius: 4px; font-size: 0.85rem; font-weight: 600;">
+                            Score: {{ assignment[7] }}/{{ assignment[4] }}
+                        </span>
+                        <span style="background: #e0e7ff; color: #3730a3; padding: 0.4rem 0.8rem; border-radius: 4px; font-size: 0.85rem;">
+                            Graded - No resubmission allowed
+                        </span>
+                    {% elif assignment[6] %}
+                        <span style="background: #d1fae5; color: #065f46; padding: 0.4rem 0.8rem; border-radius: 4px; font-size: 0.85rem; font-weight: 600;">
+                            ✓ Submitted
+                        </span>
+                        <span style="background: #fef3c7; color: #92400e; padding: 0.4rem 0.8rem; border-radius: 4px; font-size: 0.85rem;">
+                            Awaiting grades
+                        </span>
+                        <a href="{{ url_for('submit_assignment', assignment_id=assignment[0]) }}" style="background: var(--accent); color: white; padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; font-weight: 600;">
+                            Resubmit
+                        </a>
+                    {% else %}
+                        <span style="background: #fee2e2; color: #7f1d1d; padding: 0.4rem 0.8rem; border-radius: 4px; font-size: 0.85rem; font-weight: 600;">
+                            Not Submitted
+                        </span>
+                        <a href="{{ url_for('submit_assignment', assignment_id=assignment[0]) }}" style="background: var(--accent); color: white; padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; font-weight: 600;">
+                            Submit
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div style="background: #f8f9fa; padding: 2rem; border-radius: 8px; text-align: center;">
+            <p style="color: var(--muted);">No assignments in this course yet.</p>
+        </div>
+    {% endif %}
+
+    <div style="margin-top: 2rem;">
+        <a href="{{ url_for('student_courses') }}" style="color: var(--brand-2); text-decoration: none;">← Back to Courses</a>
+    </div>
+</div>
+{% endblock %}

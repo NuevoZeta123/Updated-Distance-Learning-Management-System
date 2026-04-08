@@ -1,0 +1,32 @@
+{% extends "dlms_base_template.html" %}
+
+{% block title %}Ask Question - Distance Learn{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="login-container" style="max-width: 700px;">
+        <h2>Ask a Question</h2>
+        <p style="color: var(--muted); margin-bottom: 1.5rem;">{{ course[0] }}</p>
+
+        <form method="POST">
+            <div style="margin-bottom: 1.2rem;">
+                <label for="title" style="display: block; margin-bottom: 0.4rem; font-weight: 600;">Question Title</label>
+                <input type="text" id="title" name="title" placeholder="What would you like to ask?" required style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: 6px; font-size: 1rem; box-sizing: border-box;">
+            </div>
+
+            <div style="margin-bottom: 1.5rem;">
+                <label for="content" style="display: block; margin-bottom: 0.4rem; font-weight: 600;">Question Details</label>
+                <textarea id="content" name="content" rows="8" placeholder="Provide more details about your question..." required style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: 6px; font-size: 1rem; font-family: inherit; box-sizing: border-box; resize: vertical;"></textarea>
+            </div>
+
+            <button type="submit" style="background: var(--accent); color: white; padding: 0.7rem 1.5rem; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem; font-weight: 600; width: 100%; transition: background 0.2s;">
+                Post Question
+            </button>
+        </form>
+
+        <a href="{{ url_for('view_course_questions', course_id=course_id) }}" style="display: block; text-align: center; margin-top: 1rem; color: var(--brand-2); text-decoration: none;">
+            Back to Questions
+        </a>
+    </div>
+</div>
+{% endblock %}

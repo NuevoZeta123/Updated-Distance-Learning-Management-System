@@ -1,0 +1,39 @@
+{% extends "dlms_base_template.html" %}
+
+{% block title %}Submit Assignment - Distance Learn{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="login-container" style="max-width: 600px;">
+        <h2>{{ assignment[1] }}</h2>
+        <p style="color: var(--muted); margin-bottom: 1rem;">{{ assignment[5] }}</p>
+        
+        <div style="background: #f8f9fa; padding: 1rem; border-radius: 6px; margin-bottom: 1.5rem;">
+            <p style="margin: 0.5rem 0; color: var(--muted); font-size: 0.9rem;">
+                <strong>Due:</strong> {{ assignment[2].strftime('%b %d, %Y at %I:%M %p') if assignment[2] else 'No deadline' }}
+            </p>
+            <p style="margin: 0.5rem 0; color: var(--muted); font-size: 0.9rem;">
+                <strong>Total Points:</strong> {{ assignment[3] }}
+            </p>
+        </div>
+
+        <form method="POST" enctype="multipart/form-data">
+            <div style="margin-bottom: 1.5rem;">
+                <label for="assignment_file" style="display: block; margin-bottom: 0.4rem; font-weight: 600;">Upload Assignment</label>
+                <p style="color: var(--muted); font-size: 0.85rem; margin-bottom: 0.5rem;">
+                    Supported: PDF, Word (.docx, .doc), Images (JPG, PNG, GIF), Text (.txt)
+                </p>
+                <input type="file" id="assignment_file" name="assignment_file" required accept=".pdf,.docx,.doc,.txt,.jpg,.jpeg,.png,.gif" style="display: block; width: 100%; padding: 0.8rem; border: 2px dashed #ddd; border-radius: 6px; cursor: pointer;">
+            </div>
+
+            <button type="submit" style="background: var(--accent); color: white; padding: 0.7rem 1.5rem; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem; font-weight: 600; width: 100%; transition: background 0.2s;">
+                Submit Assignment
+            </button>
+        </form>
+
+        <a href="{{ url_for('student_assignments', course_id=assignment[4]) }}" style="display: block; text-align: center; margin-top: 1rem; color: var(--brand-2); text-decoration: none;">
+            Back to Assignments
+        </a>
+    </div>
+</div>
+{% endblock %}

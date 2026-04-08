@@ -1,0 +1,46 @@
+{% extends "dlms_base_template.html" %}
+
+{% block title %}Administrator Dashboard - Distance Learn{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="card">
+        <h1 class="card-title">Administrator Dashboard</h1>
+        <p>Welcome, {{ session.full_name }}! Manage the entire system from here.</p>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-number">{{ student_count }}</div>
+            <div class="stat-label">Total Students</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ lecturer_count }}</div>
+            <div class="stat-label">Total Lecturers</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ course_count }}</div>
+            <div class="stat-label">Total Courses</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ lecture_count }}</div>
+            <div class="stat-label">Total Lectures</div>
+        </div>
+    </div>
+
+    <div class="dashboard-links">
+        <a href="{{ url_for('admin_users') }}" class="dashboard-link">
+            <h3>👥 Manage Users</h3>
+            <p>View, create, and manage user accounts</p>
+        </a>
+        <a href="{{ url_for('admin_create_user') }}" class="dashboard-link">
+            <h3>➕ Create User</h3>
+            <p>Add new students, lecturers, or administrators</p>
+        </a>
+        <a href="{{ url_for('admin_courses') }}" class="dashboard-link">
+            <h3>📚 View All Courses</h3>
+            <p>Browse all courses in the system</p>
+        </a>
+    </div>
+</div>
+{% endblock %}

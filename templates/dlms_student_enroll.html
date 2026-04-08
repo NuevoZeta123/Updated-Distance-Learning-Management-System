@@ -1,0 +1,36 @@
+{% extends "dlms_base_template.html" %}
+
+{% block title %}Enroll in Courses - Distance Learn{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="card">
+        <h1 class="card-title">Available Courses</h1>
+
+        <div class="course-grid">
+            {% for course in courses %}
+            <div class="course-card">
+                <div class="course-card-body">
+                    <h3>{{ course[1] }}</h3>
+                    <p>{{ course[2][:150] }}{% if course[2]|length > 150 %}...{% endif %}</p>
+                    <p style="color: #7f8c8d; font-size: 0.9rem;">Instructor: {{ course[3] }}</p>
+                    <a href="{{ url_for('student_enroll_course', course_id=course[0]) }}" 
+                       class="btn btn-small btn-success"
+                       onclick="return confirm('Enroll in this course?')">
+                        Enroll Now
+                    </a>
+                </div>
+            </div>
+            {% else %}
+            <div style="grid-column: 1 / -1; text-align: center; padding: 2rem; color: #7f8c8d;">
+                <p>No available courses to enroll in. You're enrolled in all courses!</p>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div style="margin-top: 2rem;">
+            <a href="{{ url_for('student_dashboard') }}" class="btn">← Back to Dashboard</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

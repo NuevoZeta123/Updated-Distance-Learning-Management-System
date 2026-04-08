@@ -1,0 +1,46 @@
+{% extends "dlms_base_template.html" %}
+
+{% block title %}Questions - Distance Learn{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;">
+        <div style="flex: 1; min-width: 200px;">
+            <h2 style="margin: 0 0 0.3rem; font-size: 1.3rem;">Questions & Answers</h2>
+            <p style="color: var(--muted); margin: 0; font-size: 0.95rem;">{{ course[0] }}</p>
+        </div>
+        {% if session.role == 'student' %}
+            <a href="{{ url_for('ask_question', course_id=course_id) }}" style="background: var(--accent); color: white; padding: 0.6rem 1.2rem; border-radius: 6px; text-decoration: none; font-weight: 600; white-space: nowrap; font-size: 0.95rem;">
+                + Ask Question
+            </a>
+        {% endif %}
+    </div>
+
+    {% if questions %}
+        <div style="display: grid; gap: 0.8rem;">
+            {% for question in questions %}
+            <a href="{{ url_for('view_question_detail', question_id=question[0]) }}" style="text-decoration: none; color: inherit;">
+                <div style="background: white; padding: 1rem; border-radius: 8px; box-shadow: var(--surface-shadow); transition: box-shadow 0.2s; cursor: pointer;" onmouseover="this.style.boxShadow='0 8px 16px rgba(0,0,0,0.1)'" onmouseout="this.style.boxShadow='var(--surface-shadow)'">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 0.8rem; margin-bottom: 0.4rem; flex-wrap: wrap;">
+                        <h3 style="color: var(--brand); margin: 0; flex: 1; font-size: 1rem; word-break: break-word;">{{ question[1] }}</h3>
+                        <span style="background: var(--brand-2); color: white; padding: 0.25rem 0.7rem; border-radius: 4px; font-size: 0.8rem; white-space: nowrap; flex-shrink: 0;">
+                            {{ question[5] }} answer{{ 's' if question[5] != 1 else '' }}
+                        </span>
+                    </div>
+                    <p style="color: var(--muted); font-size: 0.85rem; margin: 0.4rem 0;">By <strong>{{ question[3] }}</strong> on {{ question[4].strftime('%b %d, %Y at %I:%M %p') }}</p>
+                    <p style="color: #555; margin: 0.8rem 0 0; line-height: 1.5; font-size: 0.95rem;">{{ question[2][:150] }}{% if question[2]|length > 150 %}...{% endif %}</p>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 8px; text-align: center;">
+            <p style="color: var(--muted); margin: 0; font-size: 0.95rem;">No questions yet. {% if session.role == 'student' %}<a href="{{ url_for('ask_question', course_id=course_id) }}" style="color: var(--brand-2);">Be the first to ask!</a>{% else %}Waiting for students to ask questions.{% endif %}</p>
+        </div>
+    {% endif %}
+
+    <div style="margin-top: 2rem;">
+        <a href="{% if session.role == 'student' %}{{ url_for('student_courses') }}{% else %}{{ url_for('lecturer_courses') }}{% endif %}" style="color: var(--brand-2); text-decoration: none;">← Back to Courses</a>
+    </div>
+</div>
+{% endblock %}

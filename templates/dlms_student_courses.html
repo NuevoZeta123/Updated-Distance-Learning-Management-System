@@ -1,0 +1,43 @@
+{% extends "dlms_base_template.html" %}
+
+{% block title %}My Courses - Distance Learn{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="card">
+        <h1 class="card-title">My Enrolled Courses</h1>
+
+        <div class="course-grid">
+            {% for course in courses %}
+            <div class="course-card">
+                <div class="course-card-body">
+                    <h3>{{ course[1] }}</h3>
+                    <p>{{ course[2][:150] }}{% if course[2]|length > 150 %}...{% endif %}</p>
+                    <p style="color: #7f8c8d; font-size: 0.9rem;">Instructor: {{ course[3] }}</p>
+                    <p style="color: #3498db; font-weight: 500;">{{ course[4] }} Lecture(s)</p>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <a href="{{ url_for('student_course_lectures', course_id=course[0]) }}" class="btn btn-small btn-primary">Lectures</a>
+                        <a href="{{ url_for('student_assignments', course_id=course[0]) }}" class="btn btn-small btn-primary">Assignments</a>
+                        <a href="{{ url_for('view_course_questions', course_id=course[0]) }}" class="btn btn-small btn-primary">Q&A</a>
+                        <a href="{{ url_for('view_course_exams', course_id=course[0]) }}" class="btn btn-small btn-primary">Exams</a>
+                        <form method="POST" action="{{ url_for('student_unenroll_course', course_id=course[0]) }}" style="display: inline;" 
+                              onsubmit="return confirm('Are you sure you want to unenroll from this course? You will lose access to all course materials and cannot re-enroll if you have pending submissions.')">
+                            <button type="submit" class="btn btn-small btn-danger">Unenroll</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div style="grid-column: 1 / -1; text-align: center; padding: 2rem; color: #7f8c8d;">
+                <p>You are not enrolled in any courses yet.</p>
+                <a href="{{ url_for('student_enroll') }}" class="btn btn-primary" style="margin-top: 1rem;">Browse Available Courses</a>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div style="margin-top: 2rem;">
+            <a href="{{ url_for('student_dashboard') }}" class="btn">← Back to Dashboard</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

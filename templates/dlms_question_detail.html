@@ -1,0 +1,61 @@
+{% extends "dlms_base_template.html" %}
+
+{% block title %}Question - Distance Learn{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div style="margin-bottom: 2rem;">
+        <a href="{{ url_for('view_course_questions', course_id=course_id) }}" style="color: var(--brand-2); text-decoration: none; margin-bottom: 1rem; display: inline-block;">← Back to Questions</a>
+        
+        <div style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: var(--surface-shadow);">
+            <h2 style="color: var(--brand); margin: 0 0 0.5rem;">{{ question[2] }}</h2>
+            <p style="color: var(--muted); margin: 0 0 1rem; font-size: 0.9rem;">
+                Asked by <strong>{{ question[4] }}</strong> on {{ question[6].strftime('%b %d, %Y at %I:%M %p') }}
+            </p>
+            <div style="background: #f8f9fa; padding: 1rem; border-radius: 6px; margin-bottom: 1rem; line-height: 1.6;">
+                {{ question[3] }}
+            </div>
+        </div>
+    </div>
+
+    <h3 style="color: var(--brand); margin-bottom: 1rem;">Answers ({{ answers|length }})</h3>
+
+    {% if answers %}
+        <div style="display: grid; gap: 1rem; margin-bottom: 2rem;">
+            {% for answer in answers %}
+            <div style="background: #f0f9ff; padding: 1.5rem; border-left: 4px solid var(--brand-2); border-radius: 6px;">
+                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
+                    <p style="color: var(--muted); margin: 0; font-size: 0.9rem;">
+                        <strong style="color: var(--brand);">{{ answer[2] }}</strong> (Lecturer) on {{ answer[3].strftime('%b %d, %Y at %I:%M %p') }}
+                    </p>
+                    {% if session.user_id == answer[2] or session.role == 'lecturer' %}
+                        <form method="POST" action="{{ url_for('delete_answer', answer_id=answer[0]) }}" style="display: inline;">
+                            <button type="submit" onclick="return confirm('Delete this answer?')" style="background: #fee2e2; color: #7f1d1d; border: none; padding: 0.3rem 0.6rem; border-radius: 4px; cursor: pointer; font-size: 0.85rem;">Delete</button>
+                        </form>
+                    {% endif %}
+                </div>
+                <p style="color: #333; margin: 0.5rem 0 0; line-height: 1.6;">{{ answer[1] }}</p>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem;">
+            <p style="color: var(--muted); margin: 0;">No answers yet. {% if session.role == 'lecturer' %}Be the first to answer!{% else %}Waiting for lecturer response.{% endif %}</p>
+        </div>
+    {% endif %}
+
+    {% if session.role == 'lecturer' %}
+    <div style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: var(--surface-shadow);">
+        <h4 style="color: var(--brand); margin-bottom: 1rem;">Post an Answer</h4>
+        <form method="POST" action="{{ url_for('answer_question', question_id=question[0]) }}">
+            <div style="margin-bottom: 1rem;">
+                <textarea name="content" rows="6" placeholder="Type your answer here..." required style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: 6px; font-size: 1rem; font-family: inherit; box-sizing: border-box; resize: vertical;"></textarea>
+            </div>
+            <button type="submit" style="background: var(--accent); color: white; padding: 0.6rem 1.2rem; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; transition: background 0.2s;">
+                Post Answer
+            </button>
+        </form>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

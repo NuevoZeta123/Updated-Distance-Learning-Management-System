@@ -1,0 +1,59 @@
+{% extends "dlms_base_template.html" %}
+
+{% block title %}Submissions - Distance Learn{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>{{ assignment[1] }}</h2>
+    <p style="color: var(--muted); margin-bottom: 2rem;">{{ assignment[3] }}</p>
+
+    {% if submissions %}
+        <div style="overflow-x: auto; background: white; border-radius: 8px; box-shadow: var(--surface-shadow);">
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="background: var(--brand); color: white;">
+                        <th style="padding: 1rem; text-align: left;">Student</th>
+                        <th style="padding: 1rem; text-align: left;">Submitted</th>
+                        <th style="padding: 1rem; text-align: left;">Status</th>
+                        <th style="padding: 1rem; text-align: left;">Score</th>
+                        <th style="padding: 1rem; text-align: left;">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for submission in submissions %}
+                    <tr style="border-bottom: 1px solid #eee;">
+                        <td style="padding: 1rem;">{{ submission[2] }}</td>
+                        <td style="padding: 1rem;">{{ submission[4].strftime('%b %d, %I:%M %p') if submission[4] else 'Not submitted' }}</td>
+                        <td style="padding: 1rem;">
+                            <span style="background: {% if submission[5] == 'graded' %}#d1fae5{% elif submission[5] == 'submitted' %}#fef3c7{% else %}#fee2e2{% endif %}; color: {% if submission[5] == 'graded' %}#065f46{% elif submission[5] == 'submitted' %}#92400e{% else %}#7f1d1d{% endif %}; padding: 0.3rem 0.8rem; border-radius: 4px; font-size: 0.85rem; font-weight: 600;">
+                                {{ submission[5]|capitalize }}
+                            </span>
+                        </td>
+                        <td style="padding: 1rem;">
+                            {% if submission[6] %}
+                                {{ submission[6] }}/{{ assignment[0][4] }}
+                            {% else %}
+                                Not graded
+                            {% endif %}
+                        </td>
+                        <td style="padding: 1rem;">
+                            <a href="{{ url_for('grade_submission', submission_id=submission[0]) }}" style="color: var(--brand-2); text-decoration: none; font-weight: 600;">
+                                {{ 'Edit Grade' if submission[6] else 'Grade' }}
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div style="background: #f8f9fa; padding: 2rem; border-radius: 8px; text-align: center;">
+            <p style="color: var(--muted);">No submissions yet.</p>
+        </div>
+    {% endif %}
+
+    <div style="margin-top: 2rem;">
+        <a href="{{ url_for('lecturer_assignments', course_id=assignment[2]) }}" style="color: var(--brand-2); text-decoration: none;">← Back to Assignments</a>
+    </div>
+</div>
+{% endblock %}

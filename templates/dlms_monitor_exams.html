@@ -1,0 +1,78 @@
+{% extends "dlms_base_template.html" %}
+
+{% block title %}Monitor Exam - Distance Learn{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 style="color: var(--brand); margin-bottom: 0.5rem;">📊 Exam Monitoring</h1>
+    <p style="color: var(--muted); margin-bottom: 2rem;">{{ exam[1] }} - Track student attempts in real-time</p>
+
+    <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: var(--surface-shadow);">
+            <thead>
+                <tr style="background: linear-gradient(90deg, var(--brand), var(--brand-2)); color: white;">
+                    <th style="padding: 1rem; text-align: left;">Student</th>
+                    <th style="padding: 1rem; text-align: center;">Status</th>
+                    <th style="padding: 1rem; text-align: center;">Score</th>
+                    <th style="padding: 1rem; text-align: center;">Time Started</th>
+                    <th style="padding: 1rem; text-align: center;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if attempts %}
+                    {% for attempt in attempts %}
+                    <tr style="border-bottom: 1px solid #e5e7eb; transition: background 0.2s;" onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background='white'">
+                        <td style="padding: 1rem; color: #333; font-weight: 500;">{{ attempt[2] }}</td>
+                        <td style="padding: 1rem; text-align: center;">
+                            <span style="display: inline-block; padding: 0.3rem 0.8rem; border-radius: 12px; font-size: 0.85rem; font-weight: 600; background: {{ 'var(--accent)' if attempt[3] == 'completed' else '#fbbf24' }}; color: white;">
+                                {{ attempt[3] }}
+                            </span>
+                        </td>
+                        <td style="padding: 1rem; text-align: center; color: #333; font-weight: 600;">
+                            {% if attempt[3] == 'completed' %}
+                                {{ attempt[5] }} / {{ attempt[6] }}
+                            {% else %}
+                                <span style="color: var(--muted);">In Progress</span>
+                            {% endif %}
+                        </td>
+                        <td style="padding: 1rem; text-align: center; color: #333;">
+                            {{ attempt[4]|strftime('%Y-%m-%d %H:%M') if attempt[4] else 'N/A' }}
+                        </td>
+                        <td style="padding: 1rem; text-align: center;">
+                            {% if attempt[3] == 'completed' %}
+                                <a href="/exam-attempt/{{ attempt[0] }}/results" style="display: inline-block; background: var(--brand-2); color: white; padding: 0.4rem 0.8rem; border-radius: 4px; text-decoration: none; font-size: 0.85rem; font-weight: 600;">
+                                    View Results
+                                </a>
+                            {% else %}
+                                <span style="color: var(--muted); font-size: 0.85rem;">Ongoing</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="5" style="padding: 2rem; text-align: center; color: var(--muted);">
+                            No attempts yet. Students who start the exam will appear here.
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+
+    <div style="text-align: center; margin: 2rem 0;">
+        <a href="/courses/{{ exam[2] }}" style="display: inline-block; background: var(--brand-2); color: white; padding: 0.8rem 1.5rem; border-radius: 6px; text-decoration: none; font-weight: 600;">
+            Back to Course
+        </a>
+    </div>
+</div>
+
+<script>
+function endAttempt(attemptId) {
+    if (confirm('End this exam attempt? The student will not be able to continue.')) {
+        fetch(`/exam-attempt/${attemptId}/end`, {method: 'POST'})
+            .then(r => r.ok && location.reload());
+    }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,28 @@
+{% extends "dlms_base_template.html" %}
+
+{% block title %}{{ lecture[1] }} - Distance Learn{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="card">
+        <h1 class="card-title">{{ lecture[1] }}</h1>
+        <p style="color: #7f8c8d; margin-bottom: 1rem;">Course: {{ lecture[4] }}</p>
+
+        <div class="video-container">
+            <video controls controlsList="nodownload">
+                <source src="{{ url_for('static', filename=lecture[3]) }}" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+        </div>
+
+        <div style="margin-top: 2rem;">
+            <h3>About this Lecture</h3>
+            <p>{{ lecture[2] }}</p>
+        </div>
+
+        <div style="margin-top: 2rem;">
+            <a href="{{ url_for('student_course_lectures', course_id=lecture[5]) }}" class="btn">← Back to Course Lectures</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

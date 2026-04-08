@@ -1,0 +1,192 @@
+{% extends "dlms_base_template.html" %}
+
+{% block title %}Exam - Distance Learn{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem; position: sticky; top: 0; background: white; padding: 1rem; border-bottom: 2px solid var(--brand-2); margin: -1rem -1rem 1rem; border-radius: 0; z-index: 100;">
+        <div style="min-width: 200px;">
+            <h3 style="margin: 0 0 0.2rem; color: var(--brand);">{{ attempt[5] }}</h3>
+            <p style="margin: 0; color: var(--muted); font-size: 0.9rem;">Time remaining: <strong id="timer" style="color: var(--brand-2); font-size: 1.1rem;">{{ attempt[4] }}:00</strong></p>
+        </div>
+        <div style="display: flex; gap: 0.8rem; align-items: center; flex-wrap: wrap; justify-content: flex-end; width: 100%; min-width: 200px;">
+            <div style="padding: 0.5rem 0.8rem; background: #f0f9ff; border-radius: 6px; font-size: 0.85rem; border: 1px solid var(--brand-2); white-space: nowrap;">
+                <span id="answered">0</span> / {{ questions|length }} answered
+            </div>
+            <button id="submitBtn" onclick="submitExam()" style="background: var(--accent); color: white; padding: 0.6rem 1.2rem; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.95rem;">
+                Submit Exam
+            </button>
+        </div>
+    </div>
+
+    <div id="camera-container" style="background: #f8f9fa; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; text-align: center; border: 2px dashed var(--brand-2); {% if not attempt[7] %}display: none;{% endif %}">
+        <p style="color: var(--muted); margin: 0 0 0.8rem; font-weight: 600; font-size: 0.95rem;">📹 Camera Feed (for proctoring)</p>
+        <video id="cameraFeed" style="width: 100%; max-width: 100%; height: auto; background: #000; border-radius: 6px; display: none; border: 2px solid var(--brand-2);"></video>
+        <button id="cameraBtn" onclick="initCamera()" style="background: var(--brand-2); color: white; padding: 0.6rem 1.2rem; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.95rem; margin-top: 0.5rem;">
+            Enable Camera
+        </button>
+        <p id="cameraStatus" style="color: var(--muted); font-size: 0.8rem; margin: 0.5rem 0 0;"></p>
+    </div>
+
+    <div style="display: grid; gap: 1.2rem;">
+        {% for q in questions %}
+        <div style="background: white; padding: 1.2rem; border-radius: 8px; box-shadow: var(--surface-shadow);">
+            <h4 style="color: var(--brand); margin: 0 0 0.8rem; font-size: 1rem;">Question {{ loop.index }} ({{ q[6] }} point{{ 's' if q[6] != 1 else '' }})</h4>
+            <p style="color: #333; margin: 0 0 1rem; line-height: 1.6; font-size: 0.95rem;">{{ q[1] }}</p>
+            
+            <div style="display: grid; gap: 0.6rem;">
+                <label style="display: flex; align-items: flex-start; cursor: pointer; padding: 0.7rem; background: #f8f9fa; border-radius: 6px; transition: all 0.2s; border: 2px solid transparent;" onmouseover="this.style.background='#e5e7eb'; this.style.borderColor='var(--brand-2)'" onmouseout="this.style.background='#f8f9fa'; this.style.borderColor='transparent'">
+                    <input type="radio" name="q{{ q[0] }}" value="A" onchange="saveAnswer({{ q[0] }}, 'A')" {% if answers.get(q[0]) == 'A' %}checked{% endif %} style="margin-right: 0.8rem; cursor: pointer; width: 18px; height: 18px; flex-shrink: 0; margin-top: 0.2rem;">
+                    <span><strong>A:</strong> {{ q[2] }}</span>
+                </label>
+                <label style="display: flex; align-items: flex-start; cursor: pointer; padding: 0.7rem; background: #f8f9fa; border-radius: 6px; transition: all 0.2s; border: 2px solid transparent;" onmouseover="this.style.background='#e5e7eb'; this.style.borderColor='var(--brand-2)'" onmouseout="this.style.background='#f8f9fa'; this.style.borderColor='transparent'">
+                    <input type="radio" name="q{{ q[0] }}" value="B" onchange="saveAnswer({{ q[0] }}, 'B')" {% if answers.get(q[0]) == 'B' %}checked{% endif %} style="margin-right: 0.8rem; cursor: pointer; width: 18px; height: 18px; flex-shrink: 0; margin-top: 0.2rem;">
+                    <span><strong>B:</strong> {{ q[3] }}</span>
+                </label>
+                <label style="display: flex; align-items: flex-start; cursor: pointer; padding: 0.7rem; background: #f8f9fa; border-radius: 6px; transition: all 0.2s; border: 2px solid transparent;" onmouseover="this.style.background='#e5e7eb'; this.style.borderColor='var(--brand-2)'" onmouseout="this.style.background='#f8f9fa'; this.style.borderColor='transparent'">
+                    <input type="radio" name="q{{ q[0] }}" value="C" onchange="saveAnswer({{ q[0] }}, 'C')" {% if answers.get(q[0]) == 'C' %}checked{% endif %} style="margin-right: 0.8rem; cursor: pointer; width: 18px; height: 18px; flex-shrink: 0; margin-top: 0.2rem;">
+                    <span><strong>C:</strong> {{ q[4] }}</span>
+                </label>
+                <label style="display: flex; align-items: flex-start; cursor: pointer; padding: 0.7rem; background: #f8f9fa; border-radius: 6px; transition: all 0.2s; border: 2px solid transparent;" onmouseover="this.style.background='#e5e7eb'; this.style.borderColor='var(--brand-2)'" onmouseout="this.style.background='#f8f9fa'; this.style.borderColor='transparent'">
+                    <input type="radio" name="q{{ q[0] }}" value="D" onchange="saveAnswer({{ q[0] }}, 'D')" {% if answers.get(q[0]) == 'D' %}checked{% endif %} style="margin-right: 0.8rem; cursor: pointer; width: 18px; height: 18px; flex-shrink: 0; margin-top: 0.2rem;">
+                    <span><strong>D:</strong> {{ q[5] }}</span>
+                </label>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div style="text-align: center; margin: 1.5rem 0; padding: 0.8rem; background: #fffbeb; border: 2px solid #fbbf24; border-radius: 8px;">
+        <p style="margin: 0; color: #92400e; font-weight: 600; font-size: 0.95rem;">⏱️ Make sure to submit before time runs out!</p>
+    </div>
+
+    <div style="text-align: center; margin: 1.5rem 0;">
+        <button onclick="submitExam()" style="background: var(--accent); color: white; padding: 0.7rem 1.5rem; border: none; border-radius: 6px; cursor: pointer; font-size: 0.95rem; font-weight: 600; width: 100%; max-width: 250px;">
+            Submit Exam
+        </button>
+    </div>
+</div>
+
+<script>
+const attemptId = {{ attempt_id }};
+const duration = {{ attempt[4] }} * 60; // Convert to seconds
+const cameraRequired = {{ attempt[7]|lower }};
+let timeLeft = duration;
+let cameraActive = false;
+let timerInterval;
+
+// Initialize timer on page load
+function startTimer() {
+    updateTimerDisplay();
+    timerInterval = setInterval(() => {
+        timeLeft--;
+        updateTimerDisplay();
+        
+        if (timeLeft <= 0) {
+            clearInterval(timerInterval);
+            document.getElementById('timer').style.color = '#ef4444';
+            submitExam();
+        } else if (timeLeft <= 60) {
+            document.getElementById('timer').style.color = '#ef4444';
+        }
+    }, 1000);
+}
+
+function updateTimerDisplay() {
+    const minutes = Math.floor(timeLeft / 60);
+    const seconds = timeLeft % 60;
+    document.getElementById('timer').textContent = 
+        minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
+}
+
+function saveAnswer(questionId, answer) {
+    fetch('/exam-attempt/{{ attempt_id }}/answer', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({question_id: questionId, answer: answer})
+    }).then(r => r.json()).then(() => {
+        updateAnsweredCount();
+    }).catch(err => console.error('Error saving answer:', err));
+}
+
+function updateAnsweredCount() {
+    const answered = document.querySelectorAll('input[type="radio"]:checked').length;
+    document.getElementById('answered').textContent = answered;
+}
+
+function initCamera() {
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        navigator.mediaDevices.getUserMedia({ video: { width: { ideal: 640 }, height: { ideal: 480 } } })
+            .then(stream => {
+                document.getElementById('cameraFeed').srcObject = stream;
+                document.getElementById('cameraFeed').style.display = 'block';
+                document.getElementById('cameraBtn').textContent = '✓ Camera Active';
+                document.getElementById('cameraBtn').disabled = true;
+                document.getElementById('cameraBtn').style.background = '#10b981';
+                document.getElementById('cameraStatus').textContent = '✓ Camera is recording for proctoring';
+                document.getElementById('cameraStatus').style.color = '#10b981';
+                cameraActive = true;
+            })
+            .catch(err => {
+                document.getElementById('cameraStatus').textContent = 
+                    '⚠ Camera access denied. You cannot proceed without camera access.';
+                document.getElementById('cameraStatus').style.color = '#7f1d1d';
+                if (cameraRequired) {
+                    document.getElementById('submitBtn').disabled = true;
+                }
+            });
+    } else {
+        document.getElementById('cameraStatus').textContent = 
+            '⚠ Camera not supported on this device.';
+        document.getElementById('cameraStatus').style.color = '#7f1d1d';
+        if (cameraRequired) {
+            document.getElementById('submitBtn').disabled = true;
+        }
+    }
+}
+
+function submitExam() {
+    if (cameraRequired && !cameraActive) {
+        alert('Camera must be enabled to submit exam.');
+        return;
+    }
+    if (!confirm('Submit exam? You cannot change answers after submission.')) {
+        return;
+    }
+    document.getElementById('submitBtn').disabled = true;
+    document.getElementById('submitBtn').textContent = 'Submitting...';
+    fetch('/exam-attempt/{{ attempt_id }}/submit', {
+        method: 'POST'
+    }).then(r => {
+        if (r.ok) {
+            window.location.href = '/exam-attempt/{{ attempt_id }}/results';
+        } else {
+            alert('Error submitting exam');
+            document.getElementById('submitBtn').disabled = false;
+            document.getElementById('submitBtn').textContent = 'Submit Exam';
+        }
+    });
+}
+
+// Start timer and update count on load
+window.addEventListener('load', () => {
+    startTimer();
+    updateAnsweredCount();
+    
+    // Auto-submit when page becomes hidden (if camera not required)
+    if (!cameraRequired) {
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                submitExam();
+            }
+        });
+        
+        // Warn before page unload
+        window.addEventListener('beforeunload', (e) => {
+            e.preventDefault();
+            e.returnValue = 'Leaving this page will submit your exam. Are you sure?';
+        });
+    }
+});
+</script>
+{% endblock %}

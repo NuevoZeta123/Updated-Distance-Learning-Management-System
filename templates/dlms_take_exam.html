@@ -1,0 +1,36 @@
+{% extends "dlms_base_template.html" %}
+
+{% block title %}Take Exam - Distance Learn{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div style="background: white; padding: 2rem; border-radius: 8px; box-shadow: var(--surface-shadow); max-width: 700px; margin: 2rem auto;">
+        <h2 style="color: var(--brand); margin-top: 0;">{{ exam[2] }}</h2>
+        <p style="color: var(--muted); margin-bottom: 1.5rem;">{{ exam[5] }}</p>
+
+        <div style="background: #f0f9ff; padding: 1.5rem; border-left: 4px solid var(--brand-2); border-radius: 6px; margin-bottom: 2rem;">
+            <h4 style="color: var(--brand); margin-top: 0;">Important Information</h4>
+            <ul style="margin: 0.5rem 0; padding-left: 1.5rem; color: #333;">
+                <li><strong>Duration:</strong> {{ exam[3] }} minutes</li>
+                <li><strong>Total Points:</strong> {{ exam[4] }} points</li>
+                <li><strong>Question Format:</strong> Multiple choice (A, B, C, D)</li>
+                <li><strong>Camera Required:</strong> {% if exam[6] %}Yes - Camera access required for proctoring{% else %}No - Camera not required{% endif %}</li>
+                <li><strong>Auto-Submit:</strong> Exam will auto-submit when timer expires</li>
+                {% if not exam[6] %}
+                <li><strong>Page Navigation:</strong> Leaving this page will auto-submit your exam</li>
+                {% endif %}
+                <li style="color: #7f1d1d; background: #fee2e2; padding: 0.5rem; margin: 0.5rem 0 0; border-radius: 4px;"><strong>Cannot be paused once started!</strong></li>
+            </ul>
+        </div>
+
+        <form method="POST" style="display: grid; gap: 1rem;">
+            <button type="submit" style="background: var(--accent); color: white; padding: 0.8rem 1.5rem; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem; font-weight: 600; width: 100%; transition: background 0.2s;">
+                Start Exam
+            </button>
+            <a href="{{ url_for('view_course_exams', course_id=exam[1]) }}" style="background: #e5e7eb; color: #1f2937; padding: 0.8rem 1.5rem; border-radius: 6px; text-decoration: none; font-weight: 600; text-align: center; transition: background 0.2s;">
+                Cancel
+            </a>
+        </form>
+    </div>
+</div>
+{% endblock %}

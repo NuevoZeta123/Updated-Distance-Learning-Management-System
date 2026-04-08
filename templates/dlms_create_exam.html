@@ -1,0 +1,52 @@
+{% extends "dlms_base_template.html" %}
+
+{% block title %}Create Exam - Distance Learn{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="login-container" style="max-width: 100%; margin: 0 auto;">
+        <h2 style="font-size: 1.2rem; margin-bottom: 0.3rem;">Create Exam</h2>
+        <p style="color: var(--muted); margin-bottom: 1.2rem; font-size: 0.95rem;">{{ course[0] }}</p>
+
+        <form method="POST">
+            <div style="margin-bottom: 1rem;">
+                <label for="title" style="display: block; margin-bottom: 0.4rem; font-weight: 600; font-size: 0.95rem;">Exam Title</label>
+                <input type="text" id="title" name="title" placeholder="e.g., Final Exam" required style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: 6px; font-size: 1rem; box-sizing: border-box;">
+            </div>
+
+            <div style="margin-bottom: 1rem;">
+                <label for="description" style="display: block; margin-bottom: 0.4rem; font-weight: 600; font-size: 0.95rem;">Description</label>
+                <textarea id="description" name="description" rows="3" placeholder="Exam instructions and description..." required style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: 6px; font-size: 1rem; font-family: inherit; box-sizing: border-box; resize: vertical;"></textarea>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; margin-bottom: 1rem;" class="grid-2-col">
+                <div>
+                    <label for="duration" style="display: block; margin-bottom: 0.4rem; font-weight: 600; font-size: 0.95rem;">Duration (minutes)</label>
+                    <input type="number" id="duration" name="duration" min="1" placeholder="e.g., 60" required style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: 6px; font-size: 1rem; box-sizing: border-box;">
+                </div>
+                <div>
+                    <label for="total_points" style="display: block; margin-bottom: 0.4rem; font-weight: 600; font-size: 0.95rem;">Total Points</label>
+                    <input type="number" id="total_points" name="total_points" min="1" value="100" required style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: 6px; font-size: 1rem; box-sizing: border-box;">
+                </div>
+            </div>
+
+            <div style="margin-bottom: 1rem;">
+                <label style="display: block; margin-bottom: 0.4rem; font-weight: 600; font-size: 0.95rem;">Camera Requirement</label>
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <input type="checkbox" id="camera_required" name="camera_required" style="width: 18px; height: 18px; flex-shrink: 0; cursor: pointer;">
+                    <label for="camera_required" style="margin: 0; cursor: pointer; font-size: 0.95rem;">Require camera for exam proctoring</label>
+                </div>
+                <p style="color: var(--muted); font-size: 0.85rem; margin: 0.5rem 0 0;">Students will need to enable their camera during the exam if checked.</p>
+            </div>
+
+            <button type="submit" style="background: var(--accent); color: white; padding: 0.65rem 1.2rem; border: none; border-radius: 6px; cursor: pointer; font-size: 0.95rem; font-weight: 600; width: 100%; transition: background 0.2s;">
+                Create Exam
+            </button>
+        </form>
+
+        <a href="{{ url_for('view_course_exams', course_id=course_id) }}" style="display: block; text-align: center; margin-top: 1rem; color: var(--brand-2); text-decoration: none; font-size: 0.95rem;">
+            Back to Exams
+        </a>
+    </div>
+</div>
+{% endblock %}

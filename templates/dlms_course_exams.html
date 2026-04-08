@@ -1,0 +1,82 @@
+{% extends "dlms_base_template.html" %}
+
+{% block title %}Exams - Distance Learn{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;">
+        <div style="flex: 1; min-width: 200px;">
+            <h2 style="margin: 0 0 0.3rem; font-size: 1.3rem;">Exams</h2>
+            <p style="color: var(--muted); margin: 0; font-size: 0.95rem;">{{ course[0] }}</p>
+        </div>
+        {% if session.role == 'lecturer' %}
+            <a href="{{ url_for('create_exam', course_id=course_id) }}" style="background: var(--accent); color: white; padding: 0.6rem 1.2rem; border-radius: 6px; text-decoration: none; font-weight: 600; white-space: nowrap; font-size: 0.95rem;">
+                + Create Exam
+            </a>
+        {% endif %}
+    </div>
+
+    {% if exams %}
+        <div style="display: grid; gap: 1rem;">
+            {% for exam in exams %}
+            <div style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: var(--surface-shadow);">
+                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
+                    <h3 style="color: var(--brand); margin: 0 0 0.3rem;">{{ exam[1] }}</h3>
+                    {% if session.role == 'lecturer' %}
+                    <div style="display: flex; gap: 0.5rem;">
+                        <a href="{{ url_for('edit_exam', exam_id=exam[0]) }}" style="background: #8b5cf6; color: white; padding: 0.3rem 0.8rem; border-radius: 4px; text-decoration: none; font-size: 0.85rem; font-weight: 600;">
+                            Edit
+                        </a>
+                        <span style="background: var(--brand-2); color: white; padding: 0.3rem 0.8rem; border-radius: 4px; font-size: 0.85rem;">{{ exam[5] }} Question{{ 's' if exam[5] != 1 else '' }}</span>
+                    </div>
+                    {% else %}
+                    <span style="background: var(--brand-2); color: white; padding: 0.3rem 0.8rem; border-radius: 4px; font-size: 0.85rem;">
+                        {{ exam[5] }} Question{{ 's' if exam[5] != 1 else '' }}
+                    </span>
+                    {% endif %}
+                </div>
+                <p style="color: #555; margin: 0.5rem 0; line-height: 1.5;">{{ exam[2][:120] }}{% if exam[2]|length > 120 %}...{% endif %}</p>
+                    {% if exam[2]|length > 120 %}
+                        <button onclick="showDescriptionModal('{{ exam[1]|replace("'", "\\'") }}', '{{ exam[2]|replace("'", "\\'") }}')" 
+                                style="background: none; border: none; color: var(--brand-2); cursor: pointer; font-weight: 600; padding: 0; margin-bottom: 0.5rem;">
+                            See More
+                        </button>
+                    {% endif %}
+                <p style="color: var(--muted); font-size: 0.9rem; margin: 1rem 0 0;">Total Points: <strong>{{ exam[4] }}</strong> | Camera: <strong>{% if exam[8] %}Required{% else %}Not Required{% endif %}</strong></p>
+                
+                <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+                    {% if session.role == 'student' %}
+                        {% if exam[6] > 0 %}
+                            <a href="{{ url_for('exam_results', attempt_id=exam[7]) }}" style="background: var(--brand-2); color: white; padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 0.9rem;">
+                                View Results
+                            </a>
+                        {% else %}
+                            <form method="POST" action="{{ url_for('take_exam', exam_id=exam[0]) }}" style="display: inline;">
+                                <button type="submit" style="background: var(--accent); color: white; padding: 0.5rem 1rem; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.9rem;">
+                                    Take Exam
+                                </button>
+                            </form>
+                        {% endif %}
+                    {% elif session.role == 'lecturer' %}
+                        <a href="{{ url_for('add_exam_questions', exam_id=exam[0]) }}" style="background: var(--brand-2); color: white; padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 0.9rem;">
+                            Manage Questions
+                        </a>
+                        <a href="{{ url_for('monitor_exams', exam_id=exam[0]) }}" style="background: #8b5cf6; color: white; padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 0.9rem;">
+                            Monitor
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div style="background: #f8f9fa; padding: 2rem; border-radius: 8px; text-align: center;">
+            <p style="color: var(--muted); margin: 0;">{% if session.role == 'lecturer' %}No exams yet. <a href="{{ url_for('create_exam', course_id=course_id) }}" style="color: var(--brand-2);">Create one!</a>{% else %}No exams in this course yet.{% endif %}</p>
+        </div>
+    {% endif %}
+
+    <div style="margin-top: 2rem;">
+        <a href="{% if session.role == 'student' %}{{ url_for('student_courses') }}{% else %}{{ url_for('lecturer_courses') }}{% endif %}" style="color: var(--brand-2); text-decoration: none;">← Back to Courses</a>
+    </div>
+</div>
+{% endblock %}

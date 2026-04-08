@@ -1,0 +1,95 @@
+{% extends "dlms_base_template.html" %}
+
+{% block title %}Exam Results - Distance Learn{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div style="text-align: center; margin-bottom: 2rem;">
+        <h1 style="color: var(--brand); margin-bottom: 0.5rem;">Exam Submitted</h1>
+        <p style="color: var(--muted); font-size: 1.1rem;">Results for {{ attempt[4] }}</p>
+    </div>
+
+    <div style="background: linear-gradient(135deg, var(--brand-2), var(--accent)); color: white; padding: 2rem; border-radius: 12px; text-align: center; margin-bottom: 2rem;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+            <div>
+                <p style="margin: 0 0 0.5rem; font-size: 0.9rem; opacity: 0.9;">FINAL SCORE</p>
+                <h2 style="margin: 0; font-size: 2.5rem;">{{ attempt[2] }} / {{ attempt[3] }}</h2>
+            </div>
+            <div>
+                <p style="margin: 0 0 0.5rem; font-size: 0.9rem; opacity: 0.9;">PERCENTAGE</p>
+                <h2 style="margin: 0; font-size: 2.5rem;">{{ ((attempt[2] / attempt[3]) * 100)|round(1) }}%</h2>
+            </div>
+        </div>
+    </div>
+
+    <div style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: var(--surface-shadow); margin-bottom: 2rem;">
+        <h3 style="color: var(--brand); margin-top: 0;">Exam Info</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; color: #333;">
+            <div>
+                <p style="margin: 0; color: var(--muted); font-size: 0.9rem;">SUBMITTED BY</p>
+                <p style="margin: 0.3rem 0 0; font-weight: 600;">{{ attempt[7] }}</p>
+            </div>
+            <div>
+                <p style="margin: 0; color: var(--muted); font-size: 0.9rem;">SUBMITTED AT</p>
+                <p style="margin: 0.3rem 0 0; font-weight: 600;">{{ attempt[6]|strftime('%Y-%m-%d %H:%M') if attempt[6] else 'N/A' }}</p>
+            </div>
+            <div>
+                <p style="margin: 0; color: var(--muted); font-size: 0.9rem;">QUESTIONS</p>
+                <p style="margin: 0.3rem 0 0; font-weight: 600;">{{ questions|length }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div>
+        <h3 style="color: var(--brand); margin-bottom: 1rem;">Answer Review</h3>
+        <div style="display: grid; gap: 1rem;">
+            {% for q in questions %}
+            <div style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: var(--surface-shadow); border-left: 4px solid {{ 'var(--accent)' if q[8] == q[2] else '#ef4444' }};">
+                <h4 style="color: var(--brand); margin: 0 0 0.8rem;">Question {{ loop.index }} ({{ q[7] }} point{{ 's' if q[7] != 1 else '' }})</h4>
+                <p style="color: #333; margin: 0 0 1rem; line-height: 1.6;">{{ q[1] }}</p>
+                
+                <div style="background: #f8f9fa; padding: 1rem; border-radius: 6px; margin-bottom: 1rem;">
+                    <p style="margin: 0; color: var(--muted); font-size: 0.9rem;">YOUR ANSWER</p>
+                    <p style="margin: 0.3rem 0 0; font-weight: 600; color: #333;">
+                        {% if q[8] %}
+                            {{ q[8] }}: 
+                            {% if q[8] == 'A' %}{{ q[3] }}
+                            {% elif q[8] == 'B' %}{{ q[4] }}
+                            {% elif q[8] == 'C' %}{{ q[5] }}
+                            {% elif q[8] == 'D' %}{{ q[6] }}
+                            {% endif %}
+                        {% else %}
+                            <span style="color: #7f1d1d;">Not answered</span>
+                        {% endif %}
+                    </p>
+                </div>
+
+                <div style="background: #f0fdf4; padding: 1rem; border-radius: 6px;">
+                    <p style="margin: 0; color: var(--muted); font-size: 0.9rem;">CORRECT ANSWER</p>
+                    <p style="margin: 0.3rem 0 0; font-weight: 600; color: var(--accent);">
+                        {{ q[2] }}: 
+                        {% if q[2] == 'A' %}{{ q[3] }}
+                        {% elif q[2] == 'B' %}{{ q[4] }}
+                        {% elif q[2] == 'C' %}{{ q[5] }}
+                        {% elif q[2] == 'D' %}{{ q[6] }}
+                        {% endif %}
+                    </p>
+                </div>
+
+                {% if q[8] == q[2] %}
+                <p style="margin: 1rem 0 0; color: var(--accent); font-weight: 600; font-size: 0.9rem;">✓ Correct</p>
+                {% else %}
+                <p style="margin: 1rem 0 0; color: #ef4444; font-weight: 600; font-size: 0.9rem;">✗ Incorrect</p>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div style="text-align: center; margin: 2rem 0;">
+        <a href="/student-dashboard" style="display: inline-block; background: var(--brand-2); color: white; padding: 0.8rem 1.5rem; border-radius: 6px; text-decoration: none; font-weight: 600;">
+            Return to Dashboard
+        </a>
+    </div>
+</div>
+{% endblock %}

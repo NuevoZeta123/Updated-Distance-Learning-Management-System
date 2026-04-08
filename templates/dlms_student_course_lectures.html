@@ -1,0 +1,32 @@
+{% extends "dlms_base_template.html" %}
+
+{% block title %}{{ course[0] }} Lectures - Distance Learn{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="card">
+        <h1 class="card-title">{{ course[0] }} - Video Lectures</h1>
+
+        <div class="course-grid">
+            {% for lecture in lectures %}
+            <div class="course-card">
+                <div class="course-card-body">
+                    <h3>{{ lecture[1] }}</h3>
+                    <p>{{ lecture[2][:150] }}{% if lecture[2]|length > 150 %}...{% endif %}</p>
+                    <p style="color: #7f8c8d; font-size: 0.9rem;">Uploaded: {{ lecture[4].strftime('%Y-%m-%d') }}</p>
+                    <a href="{{ url_for('student_view_lecture', lecture_id=lecture[0]) }}" class="btn btn-small btn-primary">Watch Lecture</a>
+                </div>
+            </div>
+            {% else %}
+            <div style="grid-column: 1 / -1; text-align: center; padding: 2rem; color: #7f8c8d;">
+                <p>No lectures available yet. Check back soon!</p>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div style="margin-top: 2rem;">
+            <a href="{{ url_for('student_courses') }}" class="btn">← Back to My Courses</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

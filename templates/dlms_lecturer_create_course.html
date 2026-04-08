@@ -1,0 +1,25 @@
+{% extends "dlms_base_template.html" %}
+
+{% block title %}Create Course - Distance Learn{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="card" style="max-width: 600px; margin: 0 auto;">
+        <h1 class="card-title">Create New Course</h1>
+        <form method="POST" action="{{ url_for('lecturer_create_course') }}">
+            <div class="form-group">
+                <label for="course_title">Course Title</label>
+                <input type="text" class="form-control" id="course_title" name="course_title" required>
+            </div>
+            <div class="form-group">
+                <label for="course_description">Course Description</label>
+                <textarea class="form-control" id="course_description" name="course_description" required></textarea>
+            </div>
+            <div style="display: flex; gap: 1rem;">
+                <button type="submit" class="btn btn-success">Create Course</button>
+                <a href="{{ url_for('lecturer_courses') }}" class="btn">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,60 @@
+{% extends "dlms_base_template.html" %}
+
+{% block title %}Home - Distance Learn{% endblock %}
+
+{% block content %}
+<div class="hero">
+    <div class="container">
+        <h1>Distance Learning Management System</h1>
+        <p>Empowering Education Through Technology</p>
+        {% if not session.user_id %}
+        <a href="{{ url_for('login') }}" class="btn btn-primary">Get Started</a>
+        {% else %}
+        <p>Welcome back, {{ session.full_name }}!</p>
+        {% if session.role == 'administrator' %}
+        <a href="{{ url_for('admin_dashboard') }}" class="btn btn-primary">Go to Dashboard</a>
+        {% elif session.role == 'lecturer' %}
+        <a href="{{ url_for('lecturer_dashboard') }}" class="btn btn-primary">Go to Dashboard</a>
+        {% else %}
+        <a href="{{ url_for('student_dashboard') }}" class="btn btn-primary">Go to Dashboard</a>
+        {% endif %}
+        {% endif %}
+    </div>
+</div>
+
+<div class="container">
+    <div class="card" style="margin-top: 2rem;">
+        <h2>About Distance Learn</h2>
+        <p>The Distance Learning Management System is a comprehensive platform designed to facilitate online education. Our system provides:</p>
+        <ul style="margin-left: 2rem; margin-top: 1rem;">
+            <li>Role-based access for Administrators, Lecturers, and Students</li>
+            <li>Course management and video lecture uploads</li>
+            <li>Secure user authentication and authorization</li>
+            <li>Interactive video streaming for enrolled students</li>
+            <li>User-friendly interface for all stakeholders</li>
+        </ul>
+    </div>
+
+    <div class="card">
+        <h2>Features</h2>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number">👨‍💼</div>
+                <div class="stat-label">Administrator Control</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">👨‍🏫</div>
+                <div class="stat-label">Lecturer Management</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">👨‍🎓</div>
+                <div class="stat-label">Student Learning</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">🎥</div>
+                <div class="stat-label">Video Lectures</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

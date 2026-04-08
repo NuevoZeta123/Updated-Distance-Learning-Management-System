@@ -1,0 +1,30 @@
+{% extends "dlms_base_template.html" %}
+
+{% block title %}Student Dashboard - Distance Learn{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="card">
+        <h1 class="card-title">Student Dashboard</h1>
+        <p>Welcome, {{ session.full_name }}! Access your courses and learning materials here.</p>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-number">{{ enrolled_count }}</div>
+            <div class="stat-label">Enrolled Courses</div>
+        </div>
+    </div>
+
+    <div class="dashboard-links">
+        <a href="{{ url_for('student_courses') }}" class="dashboard-link">
+            <h3>📚 My Courses</h3>
+            <p>Access your enrolled courses and lectures</p>
+        </a>
+        <a href="{{ url_for('student_enroll') }}" class="dashboard-link">
+            <h3>➕ Enroll in Course</h3>
+            <p>Browse and enroll in available courses</p>
+        </a>
+    </div>
+</div>
+{% endblock %}

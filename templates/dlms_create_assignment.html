@@ -1,0 +1,42 @@
+{% extends "dlms_base_template.html" %}
+
+{% block title %}Create Assignment - Distance Learn{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="login-container" style="max-width: 600px;">
+        <h2>Create New Assignment</h2>
+        <p style="color: var(--muted); margin-bottom: 1.5rem;">{{ course[0] }}</p>
+
+        <form method="POST">
+            <div style="margin-bottom: 1.2rem;">
+                <label for="title" style="display: block; margin-bottom: 0.4rem; font-weight: 600;">Assignment Title</label>
+                <input type="text" id="title" name="title" required style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: 6px; font-size: 1rem;">
+            </div>
+
+            <div style="margin-bottom: 1.2rem;">
+                <label for="description" style="display: block; margin-bottom: 0.4rem; font-weight: 600;">Description</label>
+                <textarea id="description" name="description" required rows="6" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: 6px; font-size: 1rem; font-family: inherit;"></textarea>
+            </div>
+
+            <div style="margin-bottom: 1.2rem;">
+                <label for="due_date" style="display: block; margin-bottom: 0.4rem; font-weight: 600;">Due Date & Time</label>
+                <input type="datetime-local" id="due_date" name="due_date" required style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: 6px; font-size: 1rem;">
+            </div>
+
+            <div style="margin-bottom: 1.5rem;">
+                <label for="total_points" style="display: block; margin-bottom: 0.4rem; font-weight: 600;">Total Points</label>
+                <input type="number" id="total_points" name="total_points" value="5" min="1" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: 6px; font-size: 1rem;">
+            </div>
+
+            <button type="submit" style="background: var(--brand-2); color: white; padding: 0.7rem 1.5rem; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem; font-weight: 600; width: 100%; transition: background 0.2s;">
+                Create Assignment
+            </button>
+        </form>
+
+        <a href="{{ url_for('lecturer_assignments', course_id=course_id) }}" style="display: block; text-align: center; margin-top: 1rem; color: var(--brand-2); text-decoration: none;">
+            Back to Assignments
+        </a>
+    </div>
+</div>
+{% endblock %}

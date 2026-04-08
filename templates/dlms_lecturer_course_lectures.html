@@ -1,0 +1,93 @@
+{% extends "dlms_base_template.html" %}
+
+{% block title %}{{ course[0] }} Lectures - Distance Learn{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="card">
+        <h1 class="card-title">{{ course[0] }} - Lectures</h1>
+
+        <div class="table">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Lecture Title</th>
+                        <th>Description</th>
+                        <th>Upload Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for lecture in lectures %}
+                    <tr>
+                        <td>{{ lecture[0] }}</td>
+                        <td>{{ lecture[1] }}</td>
+                        <td>
+                            <div style="display: inline;">
+                                {{ lecture[2][:100] }}
+                                {% if lecture[2]|length > 100 %}
+                                    <button onclick="showDescriptionModal('{{ lecture[1]|replace("'", "\\'") }}', '{{ lecture[2]|replace("'", "\\'") }}')" 
+                                            style="background: none; border: none; color: var(--brand-2); cursor: pointer; font-weight: 600; padding: 0; margin-left: 0.5rem;">
+                                        See More
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td>{{ lecture[3].strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td>
+                            <form method="POST" action="{{ url_for('delete_lecture', lecture_id=lecture[0]) }}" style="display: inline;" 
+                                  onsubmit="return confirm('Are you sure you want to delete this lecture? This action cannot be undone.')">
+                                <button type="submit" class="btn btn-small btn-danger">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" style="text-align: center; color: #7f8c8d;">
+                            No lectures uploaded yet.
+                            <a href="{{ url_for('lecturer_upload_lecture') }}" style="text-decoration: underline;">Upload your first lecture</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div style="margin-top: 1rem; display: flex; gap: 1rem;">
+            <a href="{{ url_for('lecturer_courses') }}" class="btn">← Back to Courses</a>
+            <a href="{{ url_for('lecturer_upload_lecture') }}" class="btn btn-success">Upload New Lecture</a>
+        </div>
+    </div>
+</div>
+
+<!-- Description Modal -->
+<div id="descriptionModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+    <div style="background: white; padding: 2rem; border-radius: 12px; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h3 id="modalTitle" style="color: var(--brand); margin: 0;"></h3>
+            <button onclick="closeDescriptionModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #666;">×</button>
+        </div>
+        <div id="modalContent" style="line-height: 1.6; color: #333; white-space: pre-wrap;"></div>
+    </div>
+</div>
+
+<script>
+function showDescriptionModal(content, title) {
+    document.getElementById('modalTitle').textContent = title;
+    document.getElementById('modalContent').textContent = content;
+    document.getElementById('descriptionModal').style.display = 'flex';
+}
+
+function closeDescriptionModal() {
+    document.getElementById('descriptionModal').style.display = 'none';
+}
+
+// Close modal when clicking outside
+document.getElementById('descriptionModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeDescriptionModal();
+    }
+});
+</script>
+{% endblock %}

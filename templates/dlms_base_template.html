@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Distance Learn{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dlms_css.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container" style="display:flex;justify-content:space-between;align-items:center;">
+            <div class="nav-brand">
+                <a href="{{ url_for('index') }}">Distance Learn</a>
+            </div>
+            <button class="hamburger-toggle" id="hamburgerBtn">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <ul class="nav-menu" id="navMenu">
+                {% if session.user_id %}
+                    <li><span class="nav-user">{{ session.full_name }} ({{ session.role|capitalize }})</span></li>
+                    <li><a href="{{ url_for('logout') }}" class="btn-logout">Logout</a></li>
+                {% else %}
+                    <li><a href="{{ url_for('index') }}">Home</a></li>
+                    <li><a href="{{ url_for('login') }}">Login</a></li>
+                {% endif %}
+            </ul>
+        </div>
+    </nav>
+
+    <div class="main-content">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="container">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">
+                            {{ message }}
+                            <button onclick="this.parentElement.style.display='none'" class="alert-close">&times;</button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </div>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2026 Distance Learn. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Hamburger menu toggle
+        const hamburgerBtn = document.getElementById('hamburgerBtn');
+        const navMenu = document.getElementById('navMenu');
+
+        if(hamburgerBtn){
+            hamburgerBtn.addEventListener('click', function(){
+                this.classList.toggle('active');
+                navMenu.classList.toggle('mobile-active');
+            });
+
+            // Close menu when a link is clicked
+            const navLinks = navMenu.querySelectorAll('a');
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(){
+                    hamburgerBtn.classList.remove('active');
+                    navMenu.classList.remove('mobile-active');
+                });
+            });
+
+            // Close menu when clicking outside
+            document.addEventListener('click', function(event){
+                if(!event.target.closest('.navbar')){
+                    hamburgerBtn.classList.remove('active');
+                    navMenu.classList.remove('mobile-active');
+                }
+            });
+        }
+
+        // Close alerts
+        const alerts = document.querySelectorAll('.alert-close');
+        alerts.forEach(btn => {
+            btn.addEventListener('click', function(){
+                this.parentElement.style.display = 'none';
+            });
+        });
+
+        // Description Modal - Simplified Version
+        function showDescriptionModal(title, description) {
+            // Remove existing modal
+            const existingModal = document.getElementById('descriptionModal');
+            if (existingModal) existingModal.remove();
+
+            // Create modal HTML
+            const modalHTML = `
+                <div class="description-modal" id="descriptionModal">
+                    <div class="description-modal-content">
+                        <button class="description-modal-close" onclick="closeDescriptionModal()">&times;</button>
+                        <h3 class="description-modal-title">${title}</h3>
+                        <p class="description-modal-text">${description}</p>
+                    </div>
+                </div>
+            `;
+            
+            // Insert into page
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+            // Trigger animation
+            setTimeout(() => {
+                const modal = document.getElementById('descriptionModal');
+                if (modal) {
+                    modal.classList.add('show');
+                    document.body.style.overflow = 'hidden';
+                }
+            }, 10);
+        }
+
+        function closeDescriptionModal() {
+            const modal = document.getElementById('descriptionModal');
+            if (modal) {
+                modal.classList.remove('show');
+                setTimeout(() => {
+                    modal.remove();
+                    document.body.style.overflow = '';
+                }, 300);
+            }
+        }
+
+        // Event delegation for description triggers
+        document.addEventListener('click', function(event) {
+            if (event.target.classList.contains('description-trigger')) {
+                const title = event.target.getAttribute('data-title') || 'Description';
+                const description = event.target.getAttribute('data-description') || '';
+                showDescriptionModal(title, description);
+            }
+            
+            // Close modal when clicking on the modal background
+            const modal = document.getElementById('descriptionModal');
+            if (modal && event.target === modal) {
+                closeDescriptionModal();
+            }
+        });
+
+        // Close modal on Escape key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeDescriptionModal();
+            }
+        });
+    </script>
+</body>
+</html>
