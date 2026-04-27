@@ -1,4 +1,5 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+import os
+from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
 import mysql.connector
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
@@ -7,18 +8,25 @@ from datetime import datetime
 from functools import wraps
 
 app = Flask(__name__)
-app.secret_key = 'your_secret_key_here_change_in_production'
 
-# MySQL Configuation
+# Configuration from environment variables
+app.secret_key = os.environ.get('SECRET_KEY', 'your_secret_key_here_change_in_production')
+
+# MySQL Configuration from environment variables
 MYSQL_CONFIG = {
-    'host': 'localhost',
-    'user': 'root',
-    'password': '08037005637',
-    'database': 'dlms_db'
+    'host': os.environ.get('DATABASE_HOST', 'localhost'),
+    'user': os.environ.get('DATABASE_USER', 'root'),
+    'password': os.environ.get('DATABASE_PASSWORD', '08037005637'),
+    'database': os.environ.get('DATABASE_NAME', 'dlms_db')
 }
 
 def get_db():
-    return mysql.connector.connect(**MYSQL_CONFIG)
+    try:
+        print("Connecting to database:", MYSQL_CONFIG)
+        return mysql.connector.connect(**MYSQL_CONFIG)
+    except mysql.connector.Error as err:
+        print(f"Database connection error: {err}")
+        raise
 
 # Upload Configuration
 UPLOAD_FOLDER = 'static/uploads/videos'
@@ -45,6 +53,8 @@ def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if 'user_id' not in session:
+            if request.content_type == 'application/json':
+                return jsonify({'error': 'Please log in to access this page.'}), 401
             flash('Please log in to access this page.', 'warning')
             return redirect(url_for('login'))
         return f(*args, **kwargs)
@@ -55,6 +65,8 @@ def role_required(role):
         @wraps(f)
         def decorated_function(*args, **kwargs):
             if 'role' not in session or session['role'] != role:
+                if request.content_type == 'application/json':
+                    return jsonify({'error': 'Access denied. Insufficient permissions.'}), 403
                 flash('Access denied. Insufficient permissions.', 'danger')
                 return redirect(url_for('login'))
             return f(*args, **kwargs)
@@ -142,7 +154,7 @@ def admin_dashboard():
 def admin_users():
     conn = get_db()
     cur = conn.cursor()
-    cur.execute("SELECT user_id, full_name, email, role, is_active FROM users ORDER BY user_id DESC")
+    cur.execute("SELECT user_id, full_name, email, role, is_active FROM users ORDER BY created_at ASC")
     users = cur.fetchall()
     cur.close()
     conn.close()
@@ -1196,7 +1208,7 @@ def create_exam(course_id):
         
         if not all([title, description, duration]):
             flash('All fields are required.', 'danger')
-            return render_template('dlms_create_exam.html', course=course, course_id=course_id)
+            return render_template('dlms_create_exam.html', course=course, course_id=course_id, is_exam_page=True)
         
         cur.execute("""INSERT INTO exams (course_id, title, description, duration_minutes, total_points, camera_required, created_by) 
                       VALUES (%s, %s, %s, %s, %s, %s, %s)""",
@@ -1211,7 +1223,7 @@ def create_exam(course_id):
     
     cur.close()
     conn.close()
-    return render_template('dlms_create_exam.html', course=course, course_id=course_id)
+    return render_template('dlms_create_exam.html', course=course, course_id=course_id, is_exam_page=True)
 
 # Lecturer: Add Questions to Exam
 @app.route('/lecturer/exam/<int:exam_id>/add-questions', methods=['GET', 'POST'])
@@ -1243,7 +1255,7 @@ def add_exam_questions(exam_id):
         
         if not all([question_text, option_a, option_b, option_c, option_d, correct_answer]):
             flash('All fields are required.', 'danger')
-            return render_template('dlms_add_exam_questions.html', exam=exam)
+            return render_template('dlms_add_exam_questions.html', exam=exam, is_exam_page=True)
         
         cur.execute("""INSERT INTO exam_questions (exam_id, question_text, option_a, option_b, option_c, option_d, correct_answer, points)
                       VALUES (%s, %s, %s, %s, %s, %s, %s, %s)""",
@@ -1260,7 +1272,7 @@ def add_exam_questions(exam_id):
     cur.close()
     conn.close()
     
-    return render_template('dlms_add_exam_questions.html', exam=exam, questions=questions)
+    return render_template('dlms_add_exam_questions.html', exam=exam, questions=questions, is_exam_page=True)
 
 @app.route('/lecturer/exam/question/<int:question_id>/delete', methods=['POST'])
 @login_required
@@ -1334,7 +1346,7 @@ def edit_exam(exam_id):
         
         if not all([title, description]):
             flash('Title and description are required.', 'danger')
-            return render_template('dlms_edit_exam.html', exam=exam)
+            return render_template('dlms_edit_exam.html', exam=exam, is_exam_page=True)
         
         # Don't allow editing if exam has been completed by students
         if exam[7] > 0:
@@ -1358,7 +1370,7 @@ def edit_exam(exam_id):
     
     cur.close()
     conn.close()
-    return render_template('dlms_edit_exam.html', exam=exam)
+    return render_template('dlms_edit_exam.html', exam=exam, is_exam_page=True)
 
 # View Course Exams
 @app.route('/course/<int:course_id>/exams')
@@ -1401,7 +1413,7 @@ def view_course_exams(course_id):
     cur.close()
     conn.close()
     
-    return render_template('dlms_course_exams.html', course=course, course_id=course_id, exams=exams)
+    return render_template('dlms_course_exams.html', course=course, course_id=course_id, exams=exams, is_exam_page=True)
 
 @app.route('/admin/exam/<int:exam_id>/delete', methods=['POST'])
 @login_required
@@ -1464,17 +1476,18 @@ def take_exam(exam_id):
         return redirect(url_for('student_courses'))
     
     if request.method == 'POST':
-        cur.execute("""INSERT INTO exam_attempts (exam_id, student_id, status) 
-                      VALUES (%s, %s, 'in_progress')""", (exam_id, session['user_id']))
+        cur.execute("""INSERT INTO exam_attempts (exam_id, student_id, status, start_time) 
+                      VALUES (%s, %s, 'in_progress', %s)""", (exam_id, session['user_id'], datetime.utcnow()))
         conn.commit()
-        attempt_id = cur.lastrowid
+        cur.execute("SELECT LAST_INSERT_ID()")
+        attempt_id = cur.fetchone()[0]
         cur.close()
         conn.close()
         return redirect(url_for('exam_attempt', attempt_id=attempt_id))
     
     cur.close()
     conn.close()
-    return render_template('dlms_take_exam.html', exam=exam)
+    return render_template('dlms_take_exam.html', exam=exam, is_exam_page=True)
 
 # Student: Exam Attempt Page
 @app.route('/exam-attempt/<int:attempt_id>')
@@ -1513,7 +1526,7 @@ def exam_attempt(attempt_id):
     cur.close()
     conn.close()
     
-    return render_template('dlms_exam_attempt.html', attempt=attempt, questions=questions, answers=answers, attempt_id=attempt_id)
+    return render_template('dlms_exam_attempt.html', attempt=attempt, questions=questions, answers=answers, attempt_id=attempt_id, is_exam_page=True)
 
 # Student: Save Exam Answer
 @app.route('/exam-attempt/<int:attempt_id>/answer', methods=['POST'])
@@ -1528,7 +1541,7 @@ def save_exam_answer(attempt_id):
     if not cur.fetchone():
         cur.close()
         conn.close()
-        return {'error': 'Unauthorized'}, 403
+        return jsonify({'error': 'Unauthorized'}), 403
     
     question_id = request.json.get('question_id')
     answer = request.json.get('answer')
@@ -1548,46 +1561,54 @@ def save_exam_answer(attempt_id):
     cur.close()
     conn.close()
     
-    return {'status': 'saved'}, 200
+    return jsonify({'status': 'saved'}), 200
 
 # Student: Submit Exam
 @app.route('/exam-attempt/<int:attempt_id>/submit', methods=['POST'])
 @login_required
 @role_required('student')
 def submit_exam(attempt_id):
-    conn = get_db()
-    cur = conn.cursor()
-    
-    cur.execute("""SELECT a.attempt_id, a.exam_id FROM exam_attempts a
-                   WHERE a.attempt_id = %s AND a.student_id = %s""", (attempt_id, session['user_id']))
-    attempt = cur.fetchone()
-    
-    if not attempt:
+    try:
+        print(f"Submit exam called for attempt_id: {attempt_id}, user_id: {session.get('user_id')}")
+        conn = get_db()
+        cur = conn.cursor()
+        
+        cur.execute("""SELECT a.attempt_id, a.exam_id FROM exam_attempts a
+                       WHERE a.attempt_id = %s AND a.student_id = %s""", (attempt_id, session['user_id']))
+        attempt = cur.fetchone()
+        print(f"Attempt: {attempt}")
+        
+        if not attempt:
+            cur.close()
+            conn.close()
+            return jsonify({'error': 'Exam attempt not found'}), 404
+        
+        # Calculate score
+        cur.execute("""SELECT eq.exam_question_id, eq.correct_answer, eq.points, ea.student_answer
+                       FROM exam_questions eq
+                       LEFT JOIN exam_answers ea ON eq.exam_question_id = ea.exam_question_id AND ea.attempt_id = %s
+                       WHERE eq.exam_id = %s""", (attempt_id, attempt[1]))
+        questions = cur.fetchall()
+        print(f"Questions: {len(questions)}")
+        
+        score = 0
+        for q in questions:
+            if q[2] and q[3] == q[1]:  # points, correct_answer, student_answer
+                score += int(q[2])
+        print(f"Score: {score}")
+        
+        print("Updating attempt")
+        cur.execute("""UPDATE exam_attempts SET status = 'completed', score = %s, end_time = NOW() 
+                       WHERE attempt_id = %s""", (score, attempt_id))
+        conn.commit()
+        print("Committed successfully")
         cur.close()
         conn.close()
-        flash('Exam attempt not found.', 'danger')
-        return redirect(url_for('student_courses'))
-    
-    # Calculate score
-    cur.execute("""SELECT eq.exam_question_id, eq.correct_answer, eq.points, ea.student_answer
-                   FROM exam_questions eq
-                   LEFT JOIN exam_answers ea ON eq.exam_question_id = ea.exam_question_id AND ea.attempt_id = %s
-                   WHERE eq.exam_id = %s""", (attempt_id, attempt[1]))
-    questions = cur.fetchall()
-    
-    score = 0
-    for q in questions:
-        if q[2] and q[3] == q[1]:  # points, correct_answer, student_answer
-            score += int(q[2])
-    
-    cur.execute("""UPDATE exam_attempts SET status = 'completed', score = %s, end_time = NOW() 
-                   WHERE attempt_id = %s""", (score, attempt_id))
-    conn.commit()
-    cur.close()
-    conn.close()
-    
-    flash('Exam submitted successfully!', 'success')
-    return redirect(url_for('exam_results', attempt_id=attempt_id))
+        
+        return jsonify({'status': 'success', 'message': 'Exam submitted successfully'}), 200
+    except Exception as e:
+        print(f"Exception in submit_exam: {e}")
+        return jsonify({'error': 'Internal server error'}), 500
 
 # Student: View Exam Results
 @app.route('/exam-attempt/<int:attempt_id>/results')
@@ -1620,7 +1641,7 @@ def exam_results(attempt_id):
     cur.close()
     conn.close()
     
-    return render_template('dlms_exam_results.html', attempt=attempt, questions=questions)
+    return render_template('dlms_exam_results.html', attempt=attempt, questions=questions, is_exam_page=True)
 
 # Lecturer: Monitor Exams
 @app.route('/lecturer/exam/<int:exam_id>/monitor')
@@ -1648,11 +1669,22 @@ def monitor_exams(exam_id):
                    JOIN exams e ON a.exam_id = e.exam_id
                    WHERE a.exam_id = %s
                    ORDER BY a.start_time DESC""", (exam_id,))
-    attempts = cur.fetchall()
+    raw_attempts = cur.fetchall()
+    attempts = [
+        (
+            row[0],
+            row[1],
+            row[2],
+            row[3],
+            row[4].strftime('%Y-%m-%d %H:%M') if row[4] else None,
+            row[5],
+            row[6]
+        ) for row in raw_attempts
+    ]
     cur.close()
     conn.close()
     
-    return render_template('dlms_monitor_exams.html', exam=exam, attempts=attempts)
+    return render_template('dlms_monitor_exams.html', exam=exam, attempts=attempts, is_exam_page=True)
 
 if __name__ == '__main__':
     app.run(debug=True)
