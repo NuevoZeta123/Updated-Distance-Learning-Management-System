@@ -6,12 +6,67 @@
     --brand-2: #a855f7; /* Bright purple */
     --accent: #8b5cf6; /* Medium purple */
     --accent-2: #f59e0b; /* Warm amber */
+    --accent-gold: #E9B94E; /* Warm amber gold for dark backgrounds */
+    --flax: #d0aa65; /* Flax accent color */
     --danger: #ef4444;
     --success: #6366f1; /* Indigo */
     --surface-shadow: 0 8px 32px rgba(109, 40, 217, 0.15);
-    --text-primary: #212529;
-    --text-secondary: #495057;
+    --text-primary: #1f2937; /* Dark text for cards and sections */
+    --text-secondary: #E9B94E; /* ACCENT_GOLD for secondary text on dark backgrounds */
     --border: #dee2e6;
+}
+
+.card,
+.form-group label,
+.form-control,
+.table td,
+.card-title {
+    color: var(--text-primary);
+}
+
+.flax-text {
+    color: var(--flax) !important;
+}
+
+.flax-bg-hover:hover {
+    background: rgba(208, 170, 101, 0.14) !important;
+}
+
+.form-control {
+    width:100%;
+    padding:0.75rem;
+    border:1px solid var(--border);
+    border-radius:8px;
+    font-size:1rem;
+    background:#ffffff;
+    color:#111827;
+}
+
+.form-control::placeholder {
+    color:#9ca3af;
+    opacity:1;
+}
+
+.form-control:focus {
+    outline:none;
+    border-color:var(--brand-2);
+    box-shadow:0 0 0 3px rgba(168, 85, 247, 0.18);
+    background:#ffffff;
+}
+
+.btn:hover{transform:translateY(-3px);box-shadow:0 15px 40px rgba(168, 85, 247, 0.22);background:linear-gradient(90deg,rgba(109,40,217,0.85),rgba(168,85,247,0.85));}
+
+.dashboard-link:hover{transform:translateY(-6px);box-shadow:0 20px 50px rgba(168, 85, 247, 0.2);background:rgba(208, 170, 101, 0.1);}
+
+body.exam-mode .alert-success,
+body.exam-mode .alert-danger,
+body.exam-mode .alert-warning,
+body.exam-mode .alert-info {
+    color: inherit;
+}
+
+body.exam-mode .stat-label {
+    color: #6c757d !important;
 }
 
 *{
@@ -82,7 +137,7 @@ body {
     transition:transform .18s ease, background-color .18s ease;
 }
 
-.nav-menu a:hover{transform:translateY(-2px);background:rgba(255,255,255,0.1)}
+.nav-menu a:hover{transform:translateY(-2px);background:rgba(124, 58, 237, 0.15)}
 
 .nav-user{color:rgba(255,255,255,0.9)}
 
@@ -109,6 +164,9 @@ body {
 /* Cards */
 .card{background:var(--card);border-radius:12px;box-shadow:var(--surface-shadow);padding:1.5rem;margin-bottom:1.25rem;border:1px solid var(--border)}
 
+.dashboard-welcome-card{background:linear-gradient(135deg,#111827,#1f2937);border:1px solid rgba(255,255,255,0.08);color:#f8fafc}
+.dashboard-welcome-card p{color:#d1d5db !important}
+
 .card-title{font-size:1.25rem;margin-bottom:0.75rem;color:var(--text-primary)}
 
 /* Dashboard Stats */
@@ -119,9 +177,12 @@ body {
 .stat-number{font-size:2rem;font-weight:700;color:var(--brand-2)}
 
 .stat-label {
-    color: var(--text-secondary);
+    color: var(--flax);
     margin-top: 0.5rem;
 }
+
+.course-card h3{color:var(--flax);margin-bottom:0.4rem}
+.course-card p{color:#f3f4f6;margin-bottom:0.75rem}
 
 /* Forms */
 .form-group {
@@ -156,7 +217,8 @@ select.form-control {
 .btn-primary{background:linear-gradient(90deg,var(--brand),var(--brand-2))}
 .btn-success{background:linear-gradient(90deg,var(--success),#6366f1)}
 .btn-danger{background:linear-gradient(90deg,#ef4444,#f87171)}
-.btn-warning{background:linear-gradient(90deg,var(--accent-2),#f59e0b)}
+.btn-warning{background:linear-gradient(90deg,#b45309,#f59e0b);color:white;}
+.btn-warning:hover{background:linear-gradient(90deg,#d97706,#fbbf24);}
 
 .btn-small{padding:0.45rem 0.9rem;font-size:0.9rem;border-radius:8px}
 
@@ -177,7 +239,7 @@ select.form-control {
 }
 
 .table tr:hover {
-    background-color: #2d3748;
+    background-color: rgba(124, 58, 237, 0.12);
 }
 
 /* Dashboard Links */
@@ -229,11 +291,11 @@ select.form-control {
 .footer{background:linear-gradient(90deg, var(--brand) 0%, var(--brand-2) 100%);color:white;text-align:center;padding:2rem 0;margin-top:auto;border-top-left-radius:12px;border-top-right-radius:12px}
 
 /* Status Badge */
-.badge{display:inline-block;padding:0.25rem 0.75rem;border-radius:12px;font-size:0.82rem;font-weight:600}
+.badge{display:inline-block;padding:0.25rem 0.75rem;border-radius:12px;font-size:0.82rem;font-weight:700;border:1px solid transparent;}
 
-.badge-active{background:rgba(99, 102, 241, 0.2);color:#a5f3fc}
+.badge-active{background:#eef2ff;color:#4338ca;border-color:rgba(99, 102, 241, 0.35);}
 
-.badge-inactive{background:rgba(239, 68, 68, 0.2);color:#fca5a5}
+.badge-inactive{background:#fee2e2;color:#991b1b;border-color:rgba(239, 68, 68, 0.35);}
 
 /* Hamburger Menu */
 .hamburger-toggle{display:none;flex-direction:column;cursor:pointer;background:none;border:none;gap:5px;padding:0}
