@@ -10,14 +10,14 @@ from functools import wraps
 app = Flask(__name__)
 
 # Configuration from environment variables
-app.secret_key = os.environ.get('SECRET_KEY', 'your_secret_key_here_change_in_production')
+app.secret_key = os.environ.get('SECRET_KEY', 'v3X7Y2zP9Q8R4sT1U5V0W6X8Y2Z9A1B3')
 
 # MySQL Configuration from environment variables
 MYSQL_CONFIG = {
-    'host': os.environ.get('DATABASE_HOST', 'localhost'),
+    'host': os.environ.get('DATABASE_HOST', 'switchback.proxy.rlwy.net'),
     'user': os.environ.get('DATABASE_USER', 'root'),
-    'password': os.environ.get('DATABASE_PASSWORD', '08037005637'),
-    'database': os.environ.get('DATABASE_NAME', 'dlms_db')
+    'password': os.environ.get('DATABASE_PASSWORD', 'AiwBbAmtKMRHmCRijzEFhNTtmyJYWwmW'),
+    'database': os.environ.get('DATABASE_NAME', 'dlms')
 }
 
 def get_db():
