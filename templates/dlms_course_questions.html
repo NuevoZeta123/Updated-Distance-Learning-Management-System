@@ -6,8 +6,8 @@
 <div class="container">
     <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;">
         <div style="flex: 1; min-width: 200px;">
-            <h2 style="margin: 0 0 0.3rem; font-size: 1.3rem;">Questions & Answers</h2>
-            <p style="color: var(--muted); margin: 0; font-size: 0.95rem;">{{ course[0] }}</p>
+            <h2 style="margin: 0 0 0.3rem; font-size: 1.3rem; color: #E9B94E;">Questions & Answers</h2>
+            <p style="color: #E9B94E; margin: 0; font-size: 0.95rem;">{{ course[0] }}</p>
         </div>
         {% if session.role == 'student' %}
             <a href="{{ url_for('ask_question', course_id=course_id) }}" style="background: var(--accent); color: white; padding: 0.6rem 1.2rem; border-radius: 6px; text-decoration: none; font-weight: 600; white-space: nowrap; font-size: 0.95rem;">

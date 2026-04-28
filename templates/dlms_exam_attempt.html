@@ -165,6 +165,11 @@ function submitExam() {
             document.getElementById('submitBtn').disabled = false;
             document.getElementById('submitBtn').textContent = 'Submit Exam';
         }
+    }).catch(err => {
+        console.error('Error submitting exam:', err);
+        alert('Error submitting exam. Please try again.');
+        document.getElementById('submitBtn').disabled = false;
+        document.getElementById('submitBtn').textContent = 'Submit Exam';
     });
 }
 

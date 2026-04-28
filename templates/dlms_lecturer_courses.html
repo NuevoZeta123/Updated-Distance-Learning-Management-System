@@ -15,7 +15,7 @@
             <div class="course-card">
                 <div class="course-card-body">
                     <h3>{{ course[1] }}</h3>
-                    <p>{{ course[2][:150] }}{% if course[2]|length > 150 %}...{% endif %}</p>
+                    <p style="color: #E9B94E;">{{ course[2][:150] }}{% if course[2]|length > 150 %}...{% endif %}</p>
                     <p style="color: #3498db; font-weight: 500;">{{ course[3] }} Lecture(s)</p>
                     <div style="display: flex; gap: 0.5rem;">
                         <a href="{{ url_for('lecturer_course_lectures', course_id=course[0]) }}" class="btn btn-small btn-primary">Lectures</a>

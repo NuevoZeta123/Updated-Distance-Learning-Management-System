@@ -5,7 +5,7 @@
 {% block content %}
 <div class="container">
     <h1 style="color: var(--brand); margin-bottom: 0.5rem;">📊 Exam Monitoring</h1>
-    <p style="color: var(--muted); margin-bottom: 2rem;">{{ exam[1] }} - Track student attempts in real-time</p>
+    <p style="color: #E9B94E; margin-bottom: 2rem;">{{ exam[1] }} - Track student attempts in real-time</p>
 
     <div style="overflow-x: auto;">
         <table style="width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: var(--surface-shadow);">
@@ -61,8 +61,8 @@
     </div>
 
     <div style="text-align: center; margin: 2rem 0;">
-        <a href="/courses/{{ exam[2] }}" style="display: inline-block; background: var(--brand-2); color: white; padding: 0.8rem 1.5rem; border-radius: 6px; text-decoration: none; font-weight: 600;">
-            Back to Course
+        <a href="{{ url_for('lecturer_courses') }}" style="display: inline-block; background: var(--brand-2); color: white; padding: 0.8rem 1.5rem; border-radius: 6px; text-decoration: none; font-weight: 600;">
+            Back to Courses
         </a>
     </div>
 </div>

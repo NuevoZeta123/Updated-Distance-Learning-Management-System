@@ -29,7 +29,8 @@ ALTER TABLE submissions ADD CONSTRAINT submissions_ibfk_1 FOREIGN KEY (assignmen
 ALTER TABLE submissions ADD CONSTRAINT submissions_ibfk_2 FOREIGN KEY (student_id) REFERENCES users(user_id) ON DELETE CASCADE;
 ALTER TABLE exams ADD CONSTRAINT exams_ibfk_1 FOREIGN KEY (course_id) REFERENCES courses(course_id) ON DELETE CASCADE;
 ALTER TABLE exams ADD CONSTRAINT exams_ibfk_2 FOREIGN KEY (created_by) REFERENCES users(user_id) ON DELETE CASCADE;
-ALTER TABLE exam_attempts ADD CONSTRAINT exam_attempts_ibfk_1 FOREIGN KEY (exam_id) REFERENCES exams(exam_id) ON DELETE CASCADE;
+ALTER TABLE exam_attempts 
+ADD CONSTRAINT exam_attempts_ibfk_1 FOREIGN KEY (exam_id) REFERENCES exams(exam_id) ON DELETE CASCADE;
 ALTER TABLE exam_attempts ADD CONSTRAINT exam_attempts_ibfk_2 FOREIGN KEY (student_id) REFERENCES users(user_id) ON DELETE CASCADE;
 
 -- Note: The following tables already have CASCADE constraints:

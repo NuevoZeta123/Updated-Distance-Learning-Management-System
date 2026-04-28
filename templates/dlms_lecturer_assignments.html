@@ -6,8 +6,8 @@
 <div class="container">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
         <div>
-            <h2>Assignments</h2>
-            <p style="color: var(--muted);">{{ course[0] }}</p>
+            <h2 style="color: var(--brand);">Assignments</h2>
+            <p style="color: #E9B94E;">{{ course[0] }}</p>
         </div>
         <a href="{{ url_for('create_assignment', course_id=course_id) }}" style="background: var(--accent); color: white; padding: 0.6rem 1.2rem; border-radius: 6px; text-decoration: none; font-weight: 600;">
             + New Assignment

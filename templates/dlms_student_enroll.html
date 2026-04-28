@@ -12,8 +12,8 @@
             <div class="course-card">
                 <div class="course-card-body">
                     <h3>{{ course[1] }}</h3>
-                    <p>{{ course[2][:150] }}{% if course[2]|length > 150 %}...{% endif %}</p>
-                    <p style="color: #7f8c8d; font-size: 0.9rem;">Instructor: {{ course[3] }}</p>
+                    <p style="color: #E9B94E;">{{ course[2][:150] }}{% if course[2]|length > 150 %}...{% endif %}</p>
+                    <p style="color: #E9B94E; font-size: 0.9rem;">Instructor: {{ course[3] }}</p>
                     <a href="{{ url_for('student_enroll_course', course_id=course[0]) }}" 
                        class="btn btn-small btn-success"
                        onclick="return confirm('Enroll in this course?')">

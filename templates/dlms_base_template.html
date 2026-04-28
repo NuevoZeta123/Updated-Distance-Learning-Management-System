@@ -6,7 +6,7 @@
     <title>{% block title %}Distance Learn{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/dlms_css.css') }}">
 </head>
-<body>
+<body class="{% if is_exam_page %}exam-mode{% endif %}">
     <nav class="navbar">
         <div class="container" style="display:flex;justify-content:space-between;align-items:center;">
             <div class="nav-brand">

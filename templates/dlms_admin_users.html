@@ -26,7 +26,7 @@
                 <tbody>
                     {% for user in users %}
                     <tr>
-                        <td style="word-break: break-word;">{{ user[0] }}</td>
+                        <td style="word-break: break-word;">{{ loop.index }}</td>
                         <td style="word-break: break-word;">{{ user[1] }}</td>
                         <td style="word-break: break-word; font-size: 0.9rem; max-width: 150px;">{{ user[2] }}</td>
                         <td>{{ user[3]|capitalize }}</td>

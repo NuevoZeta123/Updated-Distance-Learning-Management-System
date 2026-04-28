@@ -1,5 +1,5 @@
 import os
-from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
+from flask import Flask, render_template, request, redirect, url_for, session, flash
 import mysql.connector
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
@@ -22,7 +22,6 @@ MYSQL_CONFIG = {
 
 def get_db():
     try:
-        print("Connecting to database:", MYSQL_CONFIG)
         return mysql.connector.connect(**MYSQL_CONFIG)
     except mysql.connector.Error as err:
         print(f"Database connection error: {err}")
@@ -53,8 +52,6 @@ def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if 'user_id' not in session:
-            if request.content_type == 'application/json':
-                return jsonify({'error': 'Please log in to access this page.'}), 401
             flash('Please log in to access this page.', 'warning')
             return redirect(url_for('login'))
         return f(*args, **kwargs)
@@ -65,8 +62,6 @@ def role_required(role):
         @wraps(f)
         def decorated_function(*args, **kwargs):
             if 'role' not in session or session['role'] != role:
-                if request.content_type == 'application/json':
-                    return jsonify({'error': 'Access denied. Insufficient permissions.'}), 403
                 flash('Access denied. Insufficient permissions.', 'danger')
                 return redirect(url_for('login'))
             return f(*args, **kwargs)
@@ -154,7 +149,7 @@ def admin_dashboard():
 def admin_users():
     conn = get_db()
     cur = conn.cursor()
-    cur.execute("SELECT user_id, full_name, email, role, is_active FROM users ORDER BY created_at ASC")
+    cur.execute("SELECT user_id, full_name, email, role, is_active FROM users ORDER BY user_id DESC")
     users = cur.fetchall()
     cur.close()
     conn.close()
@@ -1479,8 +1474,7 @@ def take_exam(exam_id):
         cur.execute("""INSERT INTO exam_attempts (exam_id, student_id, status, start_time) 
                       VALUES (%s, %s, 'in_progress', %s)""", (exam_id, session['user_id'], datetime.utcnow()))
         conn.commit()
-        cur.execute("SELECT LAST_INSERT_ID()")
-        attempt_id = cur.fetchone()[0]
+        attempt_id = cur.lastrowid
         cur.close()
         conn.close()
         return redirect(url_for('exam_attempt', attempt_id=attempt_id))
@@ -1541,7 +1535,7 @@ def save_exam_answer(attempt_id):
     if not cur.fetchone():
         cur.close()
         conn.close()
-        return jsonify({'error': 'Unauthorized'}), 403
+        return {'error': 'Unauthorized'}, 403
     
     question_id = request.json.get('question_id')
     answer = request.json.get('answer')
@@ -1561,54 +1555,46 @@ def save_exam_answer(attempt_id):
     cur.close()
     conn.close()
     
-    return jsonify({'status': 'saved'}), 200
+    return {'status': 'saved'}, 200
 
 # Student: Submit Exam
 @app.route('/exam-attempt/<int:attempt_id>/submit', methods=['POST'])
 @login_required
 @role_required('student')
 def submit_exam(attempt_id):
-    try:
-        print(f"Submit exam called for attempt_id: {attempt_id}, user_id: {session.get('user_id')}")
-        conn = get_db()
-        cur = conn.cursor()
-        
-        cur.execute("""SELECT a.attempt_id, a.exam_id FROM exam_attempts a
-                       WHERE a.attempt_id = %s AND a.student_id = %s""", (attempt_id, session['user_id']))
-        attempt = cur.fetchone()
-        print(f"Attempt: {attempt}")
-        
-        if not attempt:
-            cur.close()
-            conn.close()
-            return jsonify({'error': 'Exam attempt not found'}), 404
-        
-        # Calculate score
-        cur.execute("""SELECT eq.exam_question_id, eq.correct_answer, eq.points, ea.student_answer
-                       FROM exam_questions eq
-                       LEFT JOIN exam_answers ea ON eq.exam_question_id = ea.exam_question_id AND ea.attempt_id = %s
-                       WHERE eq.exam_id = %s""", (attempt_id, attempt[1]))
-        questions = cur.fetchall()
-        print(f"Questions: {len(questions)}")
-        
-        score = 0
-        for q in questions:
-            if q[2] and q[3] == q[1]:  # points, correct_answer, student_answer
-                score += int(q[2])
-        print(f"Score: {score}")
-        
-        print("Updating attempt")
-        cur.execute("""UPDATE exam_attempts SET status = 'completed', score = %s, end_time = NOW() 
-                       WHERE attempt_id = %s""", (score, attempt_id))
-        conn.commit()
-        print("Committed successfully")
+    conn = get_db()
+    cur = conn.cursor()
+    
+    cur.execute("""SELECT a.attempt_id, a.exam_id FROM exam_attempts a
+                   WHERE a.attempt_id = %s AND a.student_id = %s""", (attempt_id, session['user_id']))
+    attempt = cur.fetchone()
+    
+    if not attempt:
         cur.close()
         conn.close()
-        
-        return jsonify({'status': 'success', 'message': 'Exam submitted successfully'}), 200
-    except Exception as e:
-        print(f"Exception in submit_exam: {e}")
-        return jsonify({'error': 'Internal server error'}), 500
+        flash('Exam attempt not found.', 'danger')
+        return redirect(url_for('student_courses'))
+    
+    # Calculate score
+    cur.execute("""SELECT eq.exam_question_id, eq.correct_answer, eq.points, ea.student_answer
+                   FROM exam_questions eq
+                   LEFT JOIN exam_answers ea ON eq.exam_question_id = ea.exam_question_id AND ea.attempt_id = %s
+                   WHERE eq.exam_id = %s""", (attempt_id, attempt[1]))
+    questions = cur.fetchall()
+    
+    score = 0
+    for q in questions:
+        if q[2] and q[3] == q[1]:  # points, correct_answer, student_answer
+            score += int(q[2])
+    
+    cur.execute("""UPDATE exam_attempts SET status = 'completed', score = %s, end_time = NOW() 
+                   WHERE attempt_id = %s""", (score, attempt_id))
+    conn.commit()
+    cur.close()
+    conn.close()
+    
+    flash('Exam submitted successfully!', 'success')
+    return redirect(url_for('exam_results', attempt_id=attempt_id))
 
 # Student: View Exam Results
 @app.route('/exam-attempt/<int:attempt_id>/results')
@@ -1669,18 +1655,7 @@ def monitor_exams(exam_id):
                    JOIN exams e ON a.exam_id = e.exam_id
                    WHERE a.exam_id = %s
                    ORDER BY a.start_time DESC""", (exam_id,))
-    raw_attempts = cur.fetchall()
-    attempts = [
-        (
-            row[0],
-            row[1],
-            row[2],
-            row[3],
-            row[4].strftime('%Y-%m-%d %H:%M') if row[4] else None,
-            row[5],
-            row[6]
-        ) for row in raw_attempts
-    ]
+    attempts = cur.fetchall()
     cur.close()
     conn.close()
     
