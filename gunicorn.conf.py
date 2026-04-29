@@ -13,8 +13,8 @@ keepalive   = 5
 bind        = '127.0.0.1:8000' # Nginx proxies to this; never expose direct
 
 # Logging
-accesslog   = '/var/log/dlms/gunicorn-access.log'
-errorlog    = '/var/log/dlms/gunicorn-error.log'
+accesslog   = '-'
+errorlog    = '-'
 loglevel    = 'warning'        # 'info' for debugging
 
 # Process naming
