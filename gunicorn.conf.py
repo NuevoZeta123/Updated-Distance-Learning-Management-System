@@ -12,9 +12,11 @@ keepalive   = 5
 # Binding
 bind        = '127.0.0.1:8000' # Nginx proxies to this; never expose direct
 
-# Logging
-accesslog   = '/var/log/dlms/gunicorn-access.log'
-errorlog    = '/var/log/dlms/gunicorn-error.log'
+# Logging - use stdout/stderr for cloud platforms (Render, Heroku, etc.)
+# For local development, set to file paths; for production, use stdout
+import os
+accesslog   = '-' if os.environ.get('RENDER') else './logs/gunicorn-access.log'
+errorlog    = '-' if os.environ.get('RENDER') else './logs/gunicorn-error.log'
 loglevel    = 'warning'        # 'info' for debugging
 
 # Process naming
