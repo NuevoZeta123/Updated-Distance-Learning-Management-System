@@ -155,13 +155,18 @@ function submitExam() {
     }
     document.getElementById('submitBtn').disabled = true;
     document.getElementById('submitBtn').textContent = 'Submitting...';
+    console.log('Submitting attempt_id:', attemptId);
     fetch('/exam-attempt/{{ attempt_id }}/submit', {
-        method: 'POST'
-    }).then(r => {
-        if (r.ok) {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    }).then(r => r.json()).then(data => {
+        console.log('Submit response:', data);
+        if (data.status === 'success') {
             window.location.href = '/exam-attempt/{{ attempt_id }}/results';
         } else {
-            alert('Error submitting exam');
+            alert('Error submitting exam: ' + (data.error || 'Unknown error'));
             document.getElementById('submitBtn').disabled = false;
             document.getElementById('submitBtn').textContent = 'Submit Exam';
         }

@@ -17,7 +17,8 @@ MYSQL_CONFIG = {
     'host': os.environ.get('DATABASE_HOST', 'switchback.proxy.rlwy.net'),
     'user': os.environ.get('DATABASE_USER', 'root'),
     'password': os.environ.get('DATABASE_PASSWORD', 'AiwBbAmtKMRHmCRijzEFhNTtmyJYWwmW'),
-    'database': os.environ.get('DATABASE_NAME', 'dlms')
+    'database': os.environ.get('DATABASE_NAME', 'dlms'),
+    'port': int(os.environ.get('DATABASE_PORT', '51540'))
 }
 
 def get_db():

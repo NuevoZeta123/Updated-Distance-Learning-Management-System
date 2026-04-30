@@ -6,8 +6,8 @@
 <div class="container">
     <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;">
         <div style="flex: 1; min-width: 200px;">
-            <h2 style="margin: 0 0 0.3rem; font-size: 1.3rem; color: #E9B94E;">Exams</h2>
-            <p style="color: #E9B94E; margin: 0; font-size: 0.95rem;">{{ course[0] }}</p>
+            <h2 style="margin: 0 0 0.3rem; font-size: 1.3rem; color: var(--flax);">Exams</h2>
+            <p style="color: var(--flax); margin: 0; font-size: 0.95rem;">{{ course[0] }}</p>
         </div>
         {% if session.role == 'lecturer' %}
             <a href="{{ url_for('create_exam', course_id=course_id) }}" style="background: var(--accent); color: white; padding: 0.6rem 1.2rem; border-radius: 6px; text-decoration: none; font-weight: 600; white-space: nowrap; font-size: 0.95rem;">
@@ -35,7 +35,7 @@
                     </span>
                     {% endif %}
                 </div>
-                <p style="color: #555; margin: 0.5rem 0; line-height: 1.5;">{{ exam[2][:120] }}{% if exam[2]|length > 120 %}...{% endif %}</p>
+                <p style="color: var(--text-primary); margin: 0.5rem 0; line-height: 1.5;">{{ exam[2][:120] }}{% if exam[2]|length > 120 %}...{% endif %}</p>
                     {% if exam[2]|length > 120 %}
                         <button onclick="showDescriptionModal('{{ exam[1]|replace("'", "\\'") }}', '{{ exam[2]|replace("'", "\\'") }}')" 
                                 style="background: none; border: none; color: var(--brand-2); cursor: pointer; font-weight: 600; padding: 0; margin-bottom: 0.5rem;">

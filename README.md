@@ -4,6 +4,7 @@
 A fully functional Web-Based Distance Learning Management System developed using the Waterfall Software Development Life Cycle methodology. The system provides role-based access control for Administrators, Lecturers, and Students with comprehensive course and lecture management capabilities.
 
 ## Technology Stack
+
 - **Backend:** Python 3.x with Flask Framework
 - **Frontend:** HTML5, CSS3, JavaScript
 - **Database:** MySQL

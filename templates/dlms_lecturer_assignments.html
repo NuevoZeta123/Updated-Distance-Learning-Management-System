@@ -21,7 +21,7 @@
                 <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
                     <div>
                         <h3 style="color: var(--brand); margin-bottom: 0.3rem;">{{ assignment[1] }}</h3>
-                        <p style="color: var(--muted); font-size: 0.9rem;">Due: {{ assignment[3].strftime('%b %d, %Y at %I:%M %p') if assignment[3] else 'No deadline' }}</p>
+                        <p style="color: var(--flax); font-size: 0.9rem;">Due: {{ assignment[3].strftime('%b %d, %Y at %I:%M %p') if assignment[3] else 'No deadline' }}</p>
                     </div>
                     <div style="display: flex; gap: 0.5rem; align-items: center;">
                         <span style="background: var(--brand-2); color: white; padding: 0.3rem 0.8rem; border-radius: 4px; font-size: 0.85rem;">{{ assignment[4] }} pts</span>
@@ -32,7 +32,7 @@
                     </div>
                 </div>
                 <div style="margin-bottom: 1rem;">
-                    <p style="color: #555; margin: 0; line-height: 1.5; display: inline;">{{ assignment[2][:150] }}</p>
+                    <p style="color: var(--text-primary); margin: 0; line-height: 1.5; display: inline;">{{ assignment[2][:150] }}</p>
                     {% if assignment[2]|length > 150 %}
                         <button onclick="showDescriptionModal('{{ assignment[2]|replace("'", "\\'") }}', '{{ assignment[1]|replace("'", "\\'") }}')" 
                                 style="background: none; border: none; color: var(--brand-2); cursor: pointer; font-weight: 600; padding: 0; margin-left: 0.5rem;">

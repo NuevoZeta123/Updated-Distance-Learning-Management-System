@@ -4,8 +4,8 @@
 
 {% block content %}
 <div class="container">
-    <h1 style="color: var(--brand); margin-bottom: 0.5rem;">📊 Exam Monitoring</h1>
-    <p style="color: #E9B94E; margin-bottom: 2rem;">{{ exam[1] }} - Track student attempts in real-time</p>
+    <h1 style="color: var(--flax); margin-bottom: 0.5rem;">📊 Exam Monitoring</h1>
+    <p style="color: var(--flax); margin-bottom: 2rem;">{{ exam[1] }} - Track student attempts in real-time</p>
 
     <div style="overflow-x: auto;">
         <table style="width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: var(--surface-shadow);">
@@ -36,7 +36,7 @@
                             {% endif %}
                         </td>
                         <td style="padding: 1rem; text-align: center; color: #333;">
-                            {{ attempt[4]|strftime('%Y-%m-%d %H:%M') if attempt[4] else 'N/A' }}
+                            {{ attempt[4] if attempt[4] else 'N/A' }}
                         </td>
                         <td style="padding: 1rem; text-align: center;">
                             {% if attempt[3] == 'completed' %}
@@ -61,7 +61,7 @@
     </div>
 
     <div style="text-align: center; margin: 2rem 0;">
-        <a href="{{ url_for('lecturer_courses') }}" style="display: inline-block; background: var(--brand-2); color: white; padding: 0.8rem 1.5rem; border-radius: 6px; text-decoration: none; font-weight: 600;">
+        <a href="{{ request.referrer or url_for('lecturer_courses') }}" style="display: inline-block; background: var(--brand-2); color: white; padding: 0.8rem 1.5rem; border-radius: 6px; text-decoration: none; font-weight: 600;">
             Back to Courses
         </a>
     </div>

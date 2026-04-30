@@ -5,8 +5,8 @@
 {% block content %}
 <div class="container">
     <div>
-        <h2 style="color: var(--brand);">Assignments</h2>
-        <p style="color: #E9B94E; margin-bottom: 2rem;">{{ course[0] }}</p>
+        <h2 style="color: var(--flax);">Assignments</h2>
+        <p style="color: var(--flax); margin-bottom: 2rem;">{{ course[0] }}</p>
     </div>
 
     {% if assignments %}
@@ -16,13 +16,13 @@
                 <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
                     <div style="flex: 1;">
                         <h3 style="color: var(--brand); margin-bottom: 0.3rem;">{{ assignment[1] }}</h3>
-                        <p style="color: var(--muted); font-size: 0.9rem;">
+                        <p style="color: var(--text-primary); font-size: 0.9rem;">
                             Due: {{ assignment[3].strftime('%b %d, %Y at %I:%M %p') if assignment[3] else 'No deadline' }}
                         </p>
                     </div>
                     <span style="background: var(--brand-2); color: white; padding: 0.3rem 0.8rem; border-radius: 4px; font-size: 0.85rem;">{{ assignment[4] }} pts</span>
                 </div>
-                <p style="color: #555; margin-bottom: 1rem; line-height: 1.5;">{{ assignment[2][:150] }}...</p>
+                <p style="color: var(--text-primary); margin-bottom: 1rem; line-height: 1.5;">{{ assignment[2][:150] }}...</p>
                 
                 <div style="display: flex; gap: 1rem; align-items: center;">
                     {% if assignment[8] == 'graded' %}
