@@ -150,7 +150,7 @@ def admin_dashboard():
 def admin_users():
     conn = get_db()
     cur = conn.cursor()
-    cur.execute("SELECT user_id, full_name, email, role, is_active FROM users ORDER BY user_id DESC")
+    cur.execute("SELECT user_id, full_name, email, role, is_active FROM users ORDER BY user_id ASC")
     users = cur.fetchall()
     cur.close()
     conn.close()
