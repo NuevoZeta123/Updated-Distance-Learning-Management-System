@@ -151,7 +151,7 @@ body {
 /* Alerts */
 .alert{padding:1rem;margin-bottom:1rem;border-radius:8px;position:relative}
 
-.alert-success{background:rgba(99, 102, 241, 0.1);color:#a5f3fc;border:1px solid rgba(6,95,70,0.2)}
+.alert-success{background:rgba(99, 102, 241, 0.1);color:#ffffff;border:1px solid rgba(6,95,70,0.2)}
 
 .alert-danger{background:rgba(239, 68, 68, 0.1);color:#fca5a5;border:1px solid rgba(127,29,29,0.2)}
 
