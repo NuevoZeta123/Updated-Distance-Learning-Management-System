@@ -87,7 +87,8 @@
     </div>
 
     <div style="text-align: center; margin: 2rem 0;">
-        <a href="/student-dashboard" style="display: inline-block; background: var(--brand-2); color: white; padding: 0.8rem 1.5rem; border-radius: 6px; text-decoration: none; font-weight: 600;">
+        <a href="{% if session['role'] == 'lecturer' %}{{ url_for('lecturer_dashboard') }}{% elif session['role'] == 'student' %}{{ url_for('student_dashboard') }}{% else %}{{ url_for('index') }}{% endif %}"
+            style="background: var(--brand); color: white; padding: 0.8rem 2rem; border-radius: 6px; text-decoration: none; font-weight: 600; display: inline-block;">
             Return to Dashboard
         </a>
     </div>

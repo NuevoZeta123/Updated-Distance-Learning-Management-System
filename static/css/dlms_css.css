@@ -62,7 +62,7 @@ body.exam-mode .alert-success,
 body.exam-mode .alert-danger,
 body.exam-mode .alert-warning,
 body.exam-mode .alert-info {
-    color: inherit;
+    color: #ffffff;
 }
 
 body.exam-mode .stat-label {

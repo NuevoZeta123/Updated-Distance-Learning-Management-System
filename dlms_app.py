@@ -9,6 +9,12 @@ from functools import wraps
 
 app = Flask(__name__)
 
+@app.template_filter('strftime')
+def strftime_filter(value, format='%Y-%m-%d %H:%M'):
+    if value is None:
+        return ''
+    return value.strftime(format)
+
 # Configuration from environment variables
 app.secret_key = os.environ.get('SECRET_KEY', 'v3X7Y2zP9Q8R4sT1U5V0W6X8Y2Z9A1B3')
 
@@ -1558,7 +1564,6 @@ def save_exam_answer(attempt_id):
     
     return {'status': 'saved'}, 200
 
-# Student: Submit Exam
 @app.route('/exam-attempt/<int:attempt_id>/submit', methods=['POST'])
 @login_required
 @role_required('student')
@@ -1573,8 +1578,7 @@ def submit_exam(attempt_id):
     if not attempt:
         cur.close()
         conn.close()
-        flash('Exam attempt not found.', 'danger')
-        return redirect(url_for('student_courses'))
+        return {'status': 'error', 'error': 'Exam attempt not found.'}, 404
     
     # Calculate score
     cur.execute("""SELECT eq.exam_question_id, eq.correct_answer, eq.points, ea.student_answer
@@ -1585,7 +1589,7 @@ def submit_exam(attempt_id):
     
     score = 0
     for q in questions:
-        if q[2] and q[3] == q[1]:  # points, correct_answer, student_answer
+        if q[2] and q[3] == q[1]:
             score += int(q[2])
     
     cur.execute("""UPDATE exam_attempts SET status = 'completed', score = %s, end_time = NOW() 
@@ -1594,23 +1598,38 @@ def submit_exam(attempt_id):
     cur.close()
     conn.close()
     
-    flash('Exam submitted successfully!', 'success')
-    return redirect(url_for('exam_results', attempt_id=attempt_id))
+    return {'status': 'success'}, 200
 
 # Student: View Exam Results
 @app.route('/exam-attempt/<int:attempt_id>/results')
 @login_required
-@role_required('student')
 def exam_results(attempt_id):
     conn = get_db()
     cur = conn.cursor()
-    
-    cur.execute("""SELECT a.attempt_id, a.exam_id, a.score, e.total_points, e.title, a.start_time, a.end_time, u.full_name
-                   FROM exam_attempts a
-                   JOIN exams e ON a.exam_id = e.exam_id
-                   JOIN users u ON a.student_id = u.user_id
-                   WHERE a.attempt_id = %s AND a.student_id = %s AND a.status = 'completed'""", 
-               (attempt_id, session['user_id']))
+
+    if session['role'] == 'student':
+        cur.execute("""SELECT a.attempt_id, a.exam_id, a.score, e.total_points, e.title, 
+                              a.start_time, a.end_time, u.full_name
+                       FROM exam_attempts a
+                       JOIN exams e ON a.exam_id = e.exam_id
+                       JOIN users u ON a.student_id = u.user_id
+                       WHERE a.attempt_id = %s AND a.student_id = %s AND a.status = 'completed'""",
+                   (attempt_id, session['user_id']))
+    elif session['role'] == 'lecturer':
+        cur.execute("""SELECT a.attempt_id, a.exam_id, a.score, e.total_points, e.title, 
+                              a.start_time, a.end_time, u.full_name
+                       FROM exam_attempts a
+                       JOIN exams e ON a.exam_id = e.exam_id
+                       JOIN users u ON a.student_id = u.user_id
+                       JOIN courses c ON e.course_id = c.course_id
+                       WHERE a.attempt_id = %s AND c.lecturer_id = %s AND a.status = 'completed'""",
+                   (attempt_id, session['user_id']))
+    else:
+        cur.close()
+        conn.close()
+        flash('Access denied.', 'danger')
+        return redirect(url_for('index'))
+
     attempt = cur.fetchone()
     
     if not attempt:
