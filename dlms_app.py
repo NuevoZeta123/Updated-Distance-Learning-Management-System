@@ -1,5 +1,5 @@
 import os
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
 import mysql.connector
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
@@ -9,23 +9,25 @@ from functools import wraps
 
 app = Flask(__name__)
 
-@app.template_filter('strftime')
-def strftime_filter(value, format='%Y-%m-%d %H:%M'):
-    if value is None:
-        return ''
-    return value.strftime(format)
-
 # Configuration from environment variables
 app.secret_key = os.environ.get('SECRET_KEY', 'v3X7Y2zP9Q8R4sT1U5V0W6X8Y2Z9A1B3')
 
+# # MySQL Configuration from environment variables
+# MYSQL_CONFIG = {
+#     'host': os.environ.get('DATABASE_HOST', 'switchback.proxy.rlwy.net'),
+#     'user': os.environ.get('DATABASE_USER', 'root'),
+#     'password': os.environ.get('DATABASE_PASSWORD', 'AiwBbAmtKMRHmCRijzEFhNTtmyJYWwmW'),
+#     'database': os.environ.get('DATABASE_NAME', 'dlms')
+# }
+
 # MySQL Configuration from environment variables
 MYSQL_CONFIG = {
-    'host': os.environ.get('DATABASE_HOST', 'switchback.proxy.rlwy.net'),
+    'host': os.environ.get('DATABASE_HOST', 'localhost'),
     'user': os.environ.get('DATABASE_USER', 'root'),
-    'password': os.environ.get('DATABASE_PASSWORD', 'AiwBbAmtKMRHmCRijzEFhNTtmyJYWwmW'),
-    'database': os.environ.get('DATABASE_NAME', 'dlms'),
-    'port': int(os.environ.get('DATABASE_PORT', '51540'))
+    'password': os.environ.get('DATABASE_PASSWORD', '08037005637'),
+    'database': os.environ.get('DATABASE_NAME', 'dlms_db')
 }
+
 
 def get_db():
     try:
@@ -156,7 +158,7 @@ def admin_dashboard():
 def admin_users():
     conn = get_db()
     cur = conn.cursor()
-    cur.execute("SELECT user_id, full_name, email, role, is_active FROM users ORDER BY user_id ASC")
+    cur.execute("SELECT user_id, full_name, email, role, is_active FROM users ORDER BY user_id")
     users = cur.fetchall()
     cur.close()
     conn.close()
@@ -1564,6 +1566,7 @@ def save_exam_answer(attempt_id):
     
     return {'status': 'saved'}, 200
 
+# Student: Submit Exam
 @app.route('/exam-attempt/<int:attempt_id>/submit', methods=['POST'])
 @login_required
 @role_required('student')
@@ -1578,7 +1581,8 @@ def submit_exam(attempt_id):
     if not attempt:
         cur.close()
         conn.close()
-        return {'status': 'error', 'error': 'Exam attempt not found.'}, 404
+        flash('Exam attempt not found.', 'danger')
+        return redirect(url_for('student_courses'))
     
     # Calculate score
     cur.execute("""SELECT eq.exam_question_id, eq.correct_answer, eq.points, ea.student_answer
@@ -1589,7 +1593,7 @@ def submit_exam(attempt_id):
     
     score = 0
     for q in questions:
-        if q[2] and q[3] == q[1]:
+        if q[2] and q[3] == q[1]:  # points, correct_answer, student_answer
             score += int(q[2])
     
     cur.execute("""UPDATE exam_attempts SET status = 'completed', score = %s, end_time = NOW() 
@@ -1598,38 +1602,23 @@ def submit_exam(attempt_id):
     cur.close()
     conn.close()
     
-    return {'status': 'success'}, 200
+    flash('Exam submitted successfully!', 'success')
+    return redirect(url_for('exam_results', attempt_id=attempt_id))
 
 # Student: View Exam Results
 @app.route('/exam-attempt/<int:attempt_id>/results')
 @login_required
+@role_required('student')
 def exam_results(attempt_id):
     conn = get_db()
     cur = conn.cursor()
-
-    if session['role'] == 'student':
-        cur.execute("""SELECT a.attempt_id, a.exam_id, a.score, e.total_points, e.title, 
-                              a.start_time, a.end_time, u.full_name
-                       FROM exam_attempts a
-                       JOIN exams e ON a.exam_id = e.exam_id
-                       JOIN users u ON a.student_id = u.user_id
-                       WHERE a.attempt_id = %s AND a.student_id = %s AND a.status = 'completed'""",
-                   (attempt_id, session['user_id']))
-    elif session['role'] == 'lecturer':
-        cur.execute("""SELECT a.attempt_id, a.exam_id, a.score, e.total_points, e.title, 
-                              a.start_time, a.end_time, u.full_name
-                       FROM exam_attempts a
-                       JOIN exams e ON a.exam_id = e.exam_id
-                       JOIN users u ON a.student_id = u.user_id
-                       JOIN courses c ON e.course_id = c.course_id
-                       WHERE a.attempt_id = %s AND c.lecturer_id = %s AND a.status = 'completed'""",
-                   (attempt_id, session['user_id']))
-    else:
-        cur.close()
-        conn.close()
-        flash('Access denied.', 'danger')
-        return redirect(url_for('index'))
-
+    
+    cur.execute("""SELECT a.attempt_id, a.exam_id, a.score, e.total_points, e.title, a.start_time, a.end_time, u.full_name
+                   FROM exam_attempts a
+                   JOIN exams e ON a.exam_id = e.exam_id
+                   JOIN users u ON a.student_id = u.user_id
+                   WHERE a.attempt_id = %s AND a.student_id = %s AND a.status = 'completed'""", 
+               (attempt_id, session['user_id']))
     attempt = cur.fetchone()
     
     if not attempt:
@@ -1680,6 +1669,364 @@ def monitor_exams(exam_id):
     conn.close()
     
     return render_template('dlms_monitor_exams.html', exam=exam, attempts=attempts, is_exam_page=True)
+
+# ===== QUIZ ROUTES =====
+
+# Lecturer: Manage Quiz for a Lecture
+@app.route('/lecturer/quiz/<int:lecture_id>')
+@login_required
+@role_required('lecturer')
+def lecturer_manage_quiz(lecture_id):
+    conn = get_db()
+    cur = conn.cursor()
+    
+    # Verify lecturer owns the lecture
+    cur.execute("""SELECT l.lecture_id, l.lecture_title, l.lecture_description, l.video_path, l.course_id, c.course_title
+                   FROM lectures l
+                   JOIN courses c ON l.course_id = c.course_id
+                   WHERE l.lecture_id = %s AND c.lecturer_id = %s""", (lecture_id, session['user_id']))
+    lecture = cur.fetchone()
+    
+    if not lecture:
+        cur.close()
+        conn.close()
+        flash('Lecture not found or access denied.', 'danger')
+        return redirect(url_for('lecturer_courses'))
+    
+    # Get sections with questions
+    cur.execute("""SELECT s.id, s.title, s.start_sec, s.end_sec, s.position
+                   FROM lecture_sections s
+                   WHERE s.lecture_id = %s
+                   ORDER BY s.position, s.created_at""", (lecture_id,))
+    sections = cur.fetchall()
+    
+    sections_with_questions = []
+    for section in sections:
+        cur.execute("""SELECT id, question, option_a, option_b, option_c, option_d, correct
+                       FROM section_questions
+                       WHERE section_id = %s
+                       ORDER BY id""", (section[0],))
+        questions = cur.fetchall()
+        sections_with_questions.append({
+            'id': section[0],
+            'title': section[1],
+            'start_sec': section[2],
+            'end_sec': section[3],
+            'position': section[4],
+            'questions': questions
+        })
+    
+    cur.close()
+    conn.close()
+    
+    return render_template('dlms_lecturer_manage_quiz.html', lecture=lecture, sections=sections_with_questions)
+
+# Lecturer: Add Section
+@app.route('/lecturer/quiz/<int:lecture_id>/section/add', methods=['POST'])
+@login_required
+@role_required('lecturer')
+def lecturer_add_section(lecture_id):
+    # Verify ownership
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("""SELECT l.lecture_id FROM lectures l
+                   JOIN courses c ON l.course_id = c.course_id
+                   WHERE l.lecture_id = %s AND c.lecturer_id = %s""", (lecture_id, session['user_id']))
+    if not cur.fetchone():
+        cur.close()
+        conn.close()
+        flash('Access denied.', 'danger')
+        return redirect(url_for('lecturer_courses'))
+    
+    title = request.form.get('title')
+    start_min = int(request.form.get('start_min', 0))
+    start_sec = int(request.form.get('start_sec', 0))
+    end_min = int(request.form.get('end_min', 0))
+    end_sec = int(request.form.get('end_sec', 0))
+    
+    start_total = start_min * 60 + start_sec
+    end_total = end_min * 60 + end_sec
+    
+    if start_total >= end_total:
+        flash('End time must be after start time.', 'danger')
+        return redirect(url_for('lecturer_manage_quiz', lecture_id=lecture_id))
+    
+    cur.execute("""INSERT INTO lecture_sections (lecture_id, title, start_sec, end_sec)
+                   VALUES (%s, %s, %s, %s)""", (lecture_id, title, start_total, end_total))
+    conn.commit()
+    cur.close()
+    conn.close()
+    
+    flash('Section added successfully!', 'success')
+    return redirect(url_for('lecturer_manage_quiz', lecture_id=lecture_id))
+
+# Lecturer: Delete Section
+@app.route('/lecturer/quiz/section/<int:section_id>/delete', methods=['POST'])
+@login_required
+@role_required('lecturer')
+def lecturer_delete_section(section_id):
+    conn = get_db()
+    cur = conn.cursor()
+    
+    # Verify ownership via lecture
+    cur.execute("""SELECT l.lecture_id FROM lecture_sections s
+                   JOIN lectures l ON s.lecture_id = l.lecture_id
+                   JOIN courses c ON l.course_id = c.course_id
+                   WHERE s.id = %s AND c.lecturer_id = %s""", (section_id, session['user_id']))
+    result = cur.fetchone()
+    if not result:
+        cur.close()
+        conn.close()
+        flash('Access denied.', 'danger')
+        return redirect(url_for('lecturer_courses'))
+    
+    lecture_id = result[0]
+    
+    cur.execute("DELETE FROM lecture_sections WHERE id = %s", (section_id,))
+    conn.commit()
+    cur.close()
+    conn.close()
+    
+    flash('Section deleted successfully!', 'success')
+    return redirect(url_for('lecturer_manage_quiz', lecture_id=lecture_id))
+
+# Lecturer: Add Question to Section
+@app.route('/lecturer/quiz/section/<int:section_id>/question/add', methods=['POST'])
+@login_required
+@role_required('lecturer')
+def lecturer_add_question(section_id):
+    conn = get_db()
+    cur = conn.cursor()
+    
+    # Verify ownership
+    cur.execute("""SELECT l.lecture_id FROM lecture_sections s
+                   JOIN lectures l ON s.lecture_id = l.lecture_id
+                   JOIN courses c ON l.course_id = c.course_id
+                   WHERE s.id = %s AND c.lecturer_id = %s""", (section_id, session['user_id']))
+    result = cur.fetchone()
+    if not result:
+        cur.close()
+        conn.close()
+        flash('Access denied.', 'danger')
+        return redirect(url_for('lecturer_courses'))
+    
+    lecture_id = result[0]
+    
+    question = request.form.get('question')
+    option_a = request.form.get('option_a')
+    option_b = request.form.get('option_b')
+    option_c = request.form.get('option_c')
+    option_d = request.form.get('option_d')
+    correct = request.form.get('correct')
+    
+    if correct not in ['a', 'b', 'c', 'd']:
+        flash('Invalid correct answer.', 'danger')
+        return redirect(url_for('lecturer_manage_quiz', lecture_id=lecture_id))
+    
+    cur.execute("""INSERT INTO section_questions (section_id, question, option_a, option_b, option_c, option_d, correct)
+                   VALUES (%s, %s, %s, %s, %s, %s, %s)""",
+               (section_id, question, option_a, option_b, option_c, option_d, correct))
+    conn.commit()
+    cur.close()
+    conn.close()
+    
+    flash('Question added successfully!', 'success')
+    return redirect(url_for('lecturer_manage_quiz', lecture_id=lecture_id))
+
+# Lecturer: Delete Question
+@app.route('/lecturer/quiz/question/<int:question_id>/delete', methods=['POST'])
+@login_required
+@role_required('lecturer')
+def lecturer_delete_question(question_id):
+    conn = get_db()
+    cur = conn.cursor()
+    
+    # Verify ownership
+    cur.execute("""SELECT l.lecture_id FROM section_questions q
+                   JOIN lecture_sections s ON q.section_id = s.id
+                   JOIN lectures l ON s.lecture_id = l.lecture_id
+                   JOIN courses c ON l.course_id = c.course_id
+                   WHERE q.id = %s AND c.lecturer_id = %s""", (question_id, session['user_id']))
+    result = cur.fetchone()
+    if not result:
+        cur.close()
+        conn.close()
+        flash('Access denied.', 'danger')
+        return redirect(url_for('lecturer_courses'))
+    
+    lecture_id = result[0]
+    
+    cur.execute("DELETE FROM section_questions WHERE id = %s", (question_id,))
+    conn.commit()
+    cur.close()
+    conn.close()
+    
+    flash('Question deleted successfully!', 'success')
+    return redirect(url_for('lecturer_manage_quiz', lecture_id=lecture_id))
+
+# Student: Get Quiz Data
+@app.route('/student/quiz/<int:lecture_id>')
+def student_get_quiz(lecture_id):
+    if 'user_id' not in session:
+        return jsonify({'error': 'Not logged in'}), 401
+    if session.get('role') != 'student':
+        return jsonify({'error': 'Access denied'}), 403
+    
+    conn = get_db()
+    cur = conn.cursor()
+    
+    # Verify enrollment
+    cur.execute("""SELECT e.enrollment_id FROM enrollments e
+                   JOIN lectures l ON e.course_id = l.course_id
+                   WHERE l.lecture_id = %s AND e.student_id = %s""", (lecture_id, session['user_id']))
+    if not cur.fetchone():
+        cur.close()
+        conn.close()
+        return jsonify({'error': 'Not enrolled in this course'}), 403
+    
+    # Get sections with questions (no correct answer)
+    cur.execute("""SELECT s.id, s.title, s.start_sec, s.end_sec
+                   FROM lecture_sections s
+                   WHERE s.lecture_id = %s
+                   ORDER BY s.position, s.created_at""", (lecture_id,))
+    sections = cur.fetchall()
+    
+    quiz_sections = []
+    for section in sections:
+        cur.execute("""SELECT id, question, option_a, option_b, option_c, option_d
+                       FROM section_questions
+                       WHERE section_id = %s
+                       ORDER BY id""", (section[0],))
+        questions = cur.fetchall()
+        quiz_sections.append({
+            'id': section[0],
+            'title': section[1],
+            'start_sec': section[2],
+            'end_sec': section[3],
+            'questions': [{'id': q[0], 'question': q[1], 'option_a': q[2], 'option_b': q[3], 'option_c': q[4], 'option_d': q[5]} for q in questions]
+        })
+    
+    # Check if student has seen notice
+    cur.execute("SELECT seen_quiz_notice FROM users WHERE user_id = %s", (session['user_id'],))
+    seen_notice = cur.fetchone()[0]
+    show_notice = seen_notice == 0
+    
+    cur.close()
+    conn.close()
+    
+    return jsonify({'sections': quiz_sections, 'show_notice': show_notice})
+
+# Student: Submit Quiz Attempt
+@app.route('/student/quiz/attempt', methods=['POST'])
+def student_submit_attempt():
+    if 'user_id' not in session:
+        return jsonify({'error': 'Not logged in'}), 401
+    if session.get('role') != 'student':
+        return jsonify({'error': 'Access denied'}), 403
+    
+    data = request.get_json()
+    section_id = data.get('section_id')
+    answers = data.get('answers', {})
+    
+    if not section_id or not answers:
+        return jsonify({'error': 'Invalid data'}), 400
+    
+    conn = get_db()
+    cur = conn.cursor()
+    
+    # Verify access
+    cur.execute("""SELECT s.id FROM lecture_sections s
+                   JOIN lectures l ON s.lecture_id = l.lecture_id
+                   JOIN enrollments e ON l.course_id = e.course_id
+                   WHERE s.id = %s AND e.student_id = %s""", (section_id, session['user_id']))
+    if not cur.fetchone():
+        cur.close()
+        conn.close()
+        return jsonify({'error': 'Access denied'}), 403
+    
+    # Get correct answers
+    cur.execute("SELECT id, correct FROM section_questions WHERE section_id = %s", (section_id,))
+    correct_answers = {row[0]: row[1] for row in cur.fetchall()}
+    
+    # Grade
+    results = []
+    correct_count = 0
+    total = len(correct_answers)
+    
+    for qid, correct in correct_answers.items():
+        student_answer = answers.get(str(qid))
+        is_correct = student_answer == correct
+        if is_correct:
+            correct_count += 1
+        results.append({
+            'question_id': qid,
+            'correct': is_correct,
+            'correct_answer': correct
+        })
+    
+    # Insert attempt
+    cur.execute("""INSERT INTO section_quiz_attempts (section_id, student_id, questions_attempted, questions_correct)
+                   VALUES (%s, %s, %s, %s)""", (section_id, session['user_id'], total, correct_count))
+    
+    # Update seen_notice if show_notice was true
+    if data.get('show_notice'):
+        cur.execute("UPDATE users SET seen_quiz_notice = 1 WHERE user_id = %s", (session['user_id'],))
+    
+    conn.commit()
+    cur.close()
+    conn.close()
+    
+    return jsonify({
+        'section_id': section_id,
+        'results': results,
+        'correct_count': correct_count,
+        'total': total
+    })
+
+# Lecturer: Quiz Analytics
+@app.route('/lecturer/quiz/analytics/<int:lecture_id>')
+def lecturer_quiz_analytics(lecture_id):
+    if 'user_id' not in session:
+        return jsonify({'error': 'Not logged in'}), 401
+    if session.get('role') != 'lecturer':
+        return jsonify({'error': 'Access denied'}), 403
+    
+    conn = get_db()
+    cur = conn.cursor()
+    
+    # Verify ownership
+    cur.execute("""SELECT l.lecture_id FROM lectures l
+                   JOIN courses c ON l.course_id = c.course_id
+                   WHERE l.lecture_id = %s AND c.lecturer_id = %s""", (lecture_id, session['user_id']))
+    if not cur.fetchone():
+        cur.close()
+        conn.close()
+        return jsonify({'error': 'Access denied'}), 403
+    
+    # Get sections with aggregated stats
+    cur.execute("""SELECT s.id, s.title, s.start_sec, s.end_sec,
+                          COUNT(a.id) as total_attempts,
+                          ROUND(AVG(a.questions_correct * 100.0 / a.questions_attempted), 1) as avg_pass_rate_pct
+                   FROM lecture_sections s
+                   LEFT JOIN section_quiz_attempts a ON s.id = a.section_id
+                   WHERE s.lecture_id = %s
+                   GROUP BY s.id, s.title, s.start_sec, s.end_sec
+                   ORDER BY s.position, s.created_at""", (lecture_id,))
+    sections = cur.fetchall()
+    
+    analytics = [{
+        'section_id': s[0],
+        'title': s[1],
+        'start_sec': s[2],
+        'end_sec': s[3],
+        'total_attempts': s[4],
+        'avg_pass_rate_pct': s[5] if s[5] is not None else None
+    } for s in sections]
+    
+    cur.close()
+    conn.close()
+    
+    return jsonify({'sections': analytics})
 
 if __name__ == '__main__':
     app.run(debug=True)

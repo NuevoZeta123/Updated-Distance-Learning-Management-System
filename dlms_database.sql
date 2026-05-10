@@ -188,3 +188,44 @@ CREATE TABLE exam_answers (
 -- or update the password_hash using Python with:
 -- from werkzeug.security import generate_password_hash
 -- print(generate_password_hash('your_password'))
+
+-- Section definitions set by the lecturer
+CREATE TABLE IF NOT EXISTS lecture_sections (
+    id          INT AUTO_INCREMENT PRIMARY KEY,
+    lecture_id  INT NOT NULL,
+    title       VARCHAR(255) NOT NULL,
+    start_sec   INT NOT NULL,   -- start time in seconds
+    end_sec     INT NOT NULL,   -- end time in seconds
+    position    INT NOT NULL DEFAULT 0,
+    created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (lecture_id) REFERENCES lectures(lecture_id) ON DELETE CASCADE
+);
+
+-- Questions belonging to a section
+CREATE TABLE IF NOT EXISTS section_questions (
+    id          INT AUTO_INCREMENT PRIMARY KEY,
+    section_id  INT NOT NULL,
+    question    TEXT NOT NULL,
+    option_a    VARCHAR(500) NOT NULL,
+    option_b    VARCHAR(500) NOT NULL,
+    option_c    VARCHAR(500),
+    option_d    VARCHAR(500),
+    correct     ENUM('a','b','c','d') NOT NULL,
+    FOREIGN KEY (section_id) REFERENCES lecture_sections(id) ON DELETE CASCADE
+);
+
+-- One row per student attempt on a whole section
+CREATE TABLE IF NOT EXISTS section_quiz_attempts (
+    id                  INT AUTO_INCREMENT PRIMARY KEY,
+    section_id          INT NOT NULL,
+    student_id          INT NOT NULL,
+    questions_attempted INT NOT NULL DEFAULT 0,
+    questions_correct   INT NOT NULL DEFAULT 0,
+    attempted_at        DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (section_id) REFERENCES lecture_sections(id) ON DELETE CASCADE,
+    FOREIGN KEY (student_id) REFERENCES users(user_id) ON DELETE CASCADE
+);
+
+-- One-time notice flag per student
+ALTER TABLE users
+    ADD COLUMN IF NOT EXISTS seen_quiz_notice TINYINT(1) NOT NULL DEFAULT 0;

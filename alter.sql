@@ -1,0 +1,1 @@
+ALTER TABLE users ADD COLUMN seen_quiz_notice TINYINT(1) NOT NULL DEFAULT 0;
